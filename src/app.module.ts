@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { MenusModule } from './modules/menus/menus.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { InfobipModule } from './modules/infobip/infobip.module';
 import { getDatabaseConfig } from './config/database.config';
 
 @Module({
@@ -22,6 +23,7 @@ import { getDatabaseConfig } from './config/database.config';
     UsersModule,
     MenusModule,
     RolesModule,
+    InfobipModule,
   ],
 })
 export class AppModule {}

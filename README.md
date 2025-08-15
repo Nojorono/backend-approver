@@ -9,6 +9,7 @@ A clean, modular NestJS application with PostgreSQL, TypeORM, JWT authentication
 - **JWT Authentication**: Secure authentication with JWT tokens
 - **Role-Based Access Control**: Four distinct roles (admin, audit, requestor, approver)
 - **Menu Management**: Dynamic menu system based on user roles
+- **Infobip Integration**: Email and WhatsApp messaging with multiple authentication methods
 - **Swagger Documentation**: Auto-generated API documentation
 - **Validation**: Request validation using class-validator
 - **Error Handling**: Comprehensive error handling and responses
@@ -55,6 +56,15 @@ JWT_SECRET=your-super-secret-jwt-key-here
 JWT_EXPIRES_IN=24h
 
 BCRYPT_SALT_ROUNDS=12
+
+# Infobip Configuration
+INFOBIP_BASE_URL=https://api.infobip.com
+INFOBIP_API_KEY=your-infobip-api-key-here
+INFOBIP_USERNAME=your-infobip-username
+INFOBIP_PASSWORD=your-infobip-password
+INFOBIP_WHATSAPP_SENDER=your-whatsapp-sender-number
+INFOBIP_TIMEOUT=30000
+INFOBIP_RETRIES=3
 ```
 
 5. Create PostgreSQL database:
@@ -120,6 +130,10 @@ src/
 │       ├── dto/
 │       ├── entities/
 │       └── services/
+│   └── infobip/         # Infobip integration module
+│       ├── controllers/
+│       ├── dto/
+│       └── services/
 ├── database/            # Database related files
 │   └── seeders/        # Database seeders
 ├── app.module.ts         # Main application module
@@ -162,6 +176,22 @@ src/
 - `PUT /api/v1/menus/:id/toggle` - Toggle menu active status (Admin only)
 - `DELETE /api/v1/menus/:id` - Delete menu (Admin only)
 
+### Infobip Integration
+- `POST /api/v1/infobip/email/send` - Send email (admin, requestor, approver)
+- `POST /api/v1/infobip/email/send/bulk` - Send bulk emails (admin)
+- `POST /api/v1/infobip/email/validate` - Validate email address (admin, audit)
+- `GET /api/v1/infobip/email/reports` - Get email reports (admin, audit)
+- `GET /api/v1/infobip/email/reports/:messageId` - Get specific email report (admin, audit)
+- `POST /api/v1/infobip/whatsapp/send` - Send WhatsApp message (admin, requestor, approver)
+- `POST /api/v1/infobip/whatsapp/send/text` - Send WhatsApp text message (admin, requestor, approver)
+- `POST /api/v1/infobip/whatsapp/send/media` - Send WhatsApp media message (admin, requestor, approver)
+- `POST /api/v1/infobip/whatsapp/send/location` - Send WhatsApp location message (admin, requestor, approver)
+- `POST /api/v1/infobip/whatsapp/send/contact` - Send WhatsApp contact message (admin, requestor, approver)
+- `POST /api/v1/infobip/whatsapp/send/template` - Send WhatsApp template message (admin, requestor, approver)
+- `GET /api/v1/infobip/whatsapp/templates` - Get WhatsApp templates (admin, audit)
+- `GET /api/v1/infobip/whatsapp/reports` - Get WhatsApp reports (admin, audit)
+- `GET /api/v1/infobip/whatsapp/reports/:messageId` - Get specific WhatsApp report (admin, audit)
+
 ## Database Migrations
 
 To run migrations:
@@ -203,6 +233,7 @@ The following users are automatically created with their respective roles:
 - Request validation and sanitization
 - CORS enabled
 - Environment-based configuration
+- Infobip integration with multiple authentication methods (API Key, OAuth2, Basic Auth, IBSSO)
 
 ## Contributing
 
