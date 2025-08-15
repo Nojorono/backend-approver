@@ -23,7 +23,7 @@ export class UsersService {
       skip,
       take: limit,
       relations: ['profile', 'roles'],
-      select: ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt'],
+      select: ['id', 'email', 'phone', 'isActive', 'createdAt'],
     });
 
     return {
@@ -39,7 +39,7 @@ export class UsersService {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: ['profile', 'roles'],
-      select: ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt'],
+      select: ['id', 'email', 'phone', 'isActive', 'createdAt'],
     });
 
     if (!user) {
@@ -59,11 +59,8 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    if (updateProfileDto.firstName) {
-      user.firstName = updateProfileDto.firstName;
-    }
-    if (updateProfileDto.lastName) {
-      user.lastName = updateProfileDto.lastName;
+    if (updateProfileDto.phone) {
+      user.phone = updateProfileDto.phone;
     }
 
     await this.userRepository.save(user);
