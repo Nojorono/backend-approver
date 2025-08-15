@@ -12,36 +12,41 @@ export class UserSeeder {
     const defaultUsers = [
       {
         email: 'admin@example.com',
-        firstName: 'Admin',
-        lastName: 'User',
+        phone: '09123456789',
+        username: 'admin',
+        pin: '1234567890',
         password: 'admin123',
         roleName: 'admin',
       },
       {
         email: 'audit@example.com',
-        firstName: 'Audit',
-        lastName: 'User',
+        phone: '091234567891',
+        username: 'audit',
+        pin: '1234567890',
         password: 'audit123',
         roleName: 'audit',
       },
       {
         email: 'requestor@example.com',
-        firstName: 'Requestor',
-        lastName: 'User',
+        phone: '091234567892',
+        username: 'requestor',
+        pin: '1234567890',
         password: 'requestor123',
         roleName: 'requestor',
       },
       {
         email: 'approver@example.com',
-        firstName: 'Approver',
-        lastName: 'User',
+        phone: '091234567893',
+        username: 'approver',
+        pin: '1234567890',
         password: 'approver123',
         roleName: 'approver',
       },
       {
         email: 'multi@example.com',
-        firstName: 'Multi',
-        lastName: 'Role User',
+        phone: '091234567894',
+        username: 'multi',
+        pin: '1234567890',
         password: 'multi123',
         roleNames: ['requestor', 'approver'],
       },
@@ -49,14 +54,15 @@ export class UserSeeder {
 
     for (const userData of defaultUsers) {
       const existingUser = await userRepository.findOne({
-        where: { email: userData.email },
+        where: { username: userData.username },
       });
 
       if (!existingUser) {
         const user = userRepository.create({
           email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
+          phone: userData.phone,
+          username: userData.username,
+          pin: userData.pin,
           password: userData.password,
           isActive: true,
         });

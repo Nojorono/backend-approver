@@ -17,7 +17,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.userRepository.findOne({
-      where: { email: loginDto.email },
+      where: { username: loginDto.username },
       relations: ['roles'],
     });
 
@@ -37,8 +37,9 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        username: user.username,
+        phone: user.phone,
+        pin: user.pin,
         roles: user.roles.map(role => role.name),
       },
     };
@@ -46,11 +47,11 @@ export class AuthService {
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: registerDto.email },
+      where: { username: registerDto.username, email: registerDto.email, phone: registerDto.phone },
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('Username, email, or phone already exists');
     }
 
     const user = this.userRepository.create(registerDto);
@@ -64,8 +65,9 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        username: user.username,
+        phone: user.phone,
+        pin: user.pin,
         roles: user.roles.map(role => role.name),
       },
     };

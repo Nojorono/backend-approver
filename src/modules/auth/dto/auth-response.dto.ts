@@ -7,9 +7,10 @@ export class AuthResponseDto {
   @ApiProperty()
   user: {
     id: string;
+    username: string;
+    phone: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    pin: string;
     roles: string[];
   };
 }

@@ -10,11 +10,14 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  firstName: string;
+  @Column({ nullable: true })
+  phone?: string;
 
-  @Column()
-  lastName: string;
+  @Column({ nullable: true })
+  username?: string;
+
+  @Column({ nullable: true })
+  pin?: string;
 
   @Column()
   @Exclude()
@@ -40,6 +43,42 @@ export class User extends BaseEntity {
     if (this.password) {
       this.password = await bcrypt.hash(this.password, 12);
     }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPin() {
+    if (this.pin) {
+      this.pin = await bcrypt.hash(this.pin, 12);
+    }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashEmail() {
+    if (this.email) {
+      this.email = await bcrypt.hash(this.email, 12);
+    }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPhone() {
+    if (this.phone) {
+      this.phone = await bcrypt.hash(this.phone, 12);
+    }
+  }
+
+  async validateEmail(email: string): Promise<boolean> {
+    return bcrypt.compare(email, this.email);
+  }
+
+  async validatePhone(phone: string): Promise<boolean> {
+    return bcrypt.compare(phone, this.phone);
+  }
+
+  async validatePin(pin: string): Promise<boolean> {
+    return bcrypt.compare(pin, this.pin);
   }
 
   async validatePassword(password: string): Promise<boolean> {

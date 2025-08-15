@@ -84,6 +84,7 @@ http://localhost:3000/api/docs
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
 - `npm run seed` - Run database seeders
+- `npm run seed:refresh` - Clear all data and re-run seeders
 
 ## Project Structure
 
@@ -186,18 +187,18 @@ The application supports four distinct roles with different permissions:
 
 The following users are automatically created with their respective roles:
 
-| Email | Password | Role | Description |
-|-------|----------|------|-------------|
-| `admin@example.com` | `admin123` | Admin | Full system access |
-| `audit@example.com` | `audit123` | Audit | Read-only access to logs and reports |
-| `requestor@example.com` | `requestor123` | Requestor | Can create and submit requests |
-| `approver@example.com` | `approver123` | Approver | Can approve or reject requests |
-| `multi@example.com` | `multi123` | Requestor + Approver | Has both requestor and approver roles |
+| Email | Username | Password | PIN | Phone | Role | Description |
+|-------|----------|----------|-----|-------|------|-------------|
+| `admin@example.com` | `admin` | `admin123` | `1234567890` | `09123456789` | Admin | Full system access |
+| `audit@example.com` | `audit` | `audit123` | `1234567890` | `091234567891` | Audit | Read-only access to logs and reports |
+| `requestor@example.com` | `requestor` | `requestor123` | `1234567890` | `091234567892` | Requestor | Can create and submit requests |
+| `approver@example.com` | `approver` | `approver123` | `1234567890` | `091234567893` | Approver | Can approve or reject requests |
+| `multi@example.com` | `multi` | `multi123` | `1234567890` | `091234567894` | Requestor + Approver | Has both requestor and approver roles |
 
 ## Security Features
 
 - JWT token-based authentication
-- Password hashing with bcrypt
+- Password, PIN, email, and phone hashing with bcrypt
 - Role-based access control (RBAC)
 - Request validation and sanitization
 - CORS enabled
