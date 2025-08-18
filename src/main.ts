@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder, SwaggerCustomOptions } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './core/interceptors/response.interceptor';
@@ -26,6 +26,18 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
 
+  const customOptions: SwaggerCustomOptions = {
+    swaggerOptions: {
+      docExpansion: 'none',
+      persistAuthorization: true,
+      displayOperationId: true,
+      operationsSorter: 'method',
+      tagsSorter: 'alpha',
+      tryItOutEnabled: true,
+      filter: true,
+    },
+  };
+
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Approval App API')
@@ -45,11 +57,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  SwaggerModule.setup('api', app, document, customOptions);
 
   await app.listen(process.env.PORT || 3000);
 }
