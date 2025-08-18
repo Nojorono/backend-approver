@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { 
   SendEmailDto, 
   ValidateEmailDto, 
@@ -55,7 +55,7 @@ export class InfobipEmailService {
         }
 
         // Use registered sender if not provided
-        const defaultSender = this.configService.get('INFOBIP_EMAIL_SENDER', 'noreply@nna-id.com');
+        const defaultSender = this.configService.get('INFOBIP_EMAIL_SENDER', 'noreply@kcsi.id');
         const sender = emailData.from || defaultSender;
 
         // Create FormData for multipart/form-data
@@ -67,16 +67,8 @@ export class InfobipEmailService {
         formData.append('subject', emailData.subject);
         
         // Handle template vs raw content
-        if (emailData.templateId && emailData.templateId.trim() !== '') {
-          // Use template mode
-          formData.append('templateId', emailData.templateId);
-          if (emailData.text) formData.append('text', emailData.text);
-          if (emailData.html) formData.append('html', emailData.html);
-        } else {
-          // Use raw content mode (no template)
-          if (emailData.text) formData.append('text', emailData.text);
-          if (emailData.html) formData.append('html', emailData.html);
-        }
+        if (emailData.text) formData.append('text', emailData.text);
+        if (emailData.html) formData.append('html', emailData.html);
         
         // Add recipients (simple format that works)
         emailData.to.forEach((recipient, index) => {
@@ -107,7 +99,6 @@ export class InfobipEmailService {
         }
         
         // Add optional fields
-        if (emailData.trackingUrl) formData.append('trackingUrl', emailData.trackingUrl);
         if (emailData.campaignId) formData.append('campaignId', emailData.campaignId);
         
         // Add attachments (if needed)

@@ -27,7 +27,7 @@ export class EmailAttachmentDto {
 }
 
 export class SendEmailDto {
-  @ApiPropertyOptional({ example: 'noreply@nna-id.com', description: 'Optional: Uses registered sender if not provided' })
+  @ApiPropertyOptional({ example: 'noreply@kcsi.id', description: 'Optional: Uses registered sender if not provided' })
   @IsOptional()
   @IsEmail()
   from?: string;
@@ -65,23 +65,10 @@ export class SendEmailDto {
   @IsArray()
   attachments?: EmailAttachmentDto[];
 
-  @ApiPropertyOptional({ example: 'https://yourcompany.com/track' })
-  @IsOptional()
-  @IsString()
-  trackingUrl?: string;
-
   @ApiPropertyOptional({ example: 'campaign-123' })
   @IsOptional()
   @IsString()
   campaignId?: string;
-
-  @ApiPropertyOptional({ 
-    example: '123', 
-    description: 'Numeric template ID from Infobip. If provided, uses template mode. If not provided, sends raw HTML/text content.' 
-  })
-  @IsOptional()
-  @IsString()
-  templateId?: string;
 }
 
 export class ValidateEmailDto {
