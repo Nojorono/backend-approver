@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from '@/modules/auth/entities/user.entity';
 import { Role } from '@/modules/roles/entities/role.entity';
 
@@ -23,7 +23,9 @@ export class UserRolesService {
       throw new NotFoundException('User not found');
     }
 
-    const roles = await this.roleRepository.findByIds(roleIds);
+    const roles = await this.roleRepository.find({
+      where: { id: In(roleIds) }
+    });
     if (roles.length !== roleIds.length) {
       throw new NotFoundException('One or more roles not found');
     }

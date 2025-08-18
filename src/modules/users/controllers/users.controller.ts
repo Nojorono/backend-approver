@@ -13,7 +13,9 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { UsersService } from '../services/users.service';
 import { UserRolesService } from '../services/user-roles.service';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 import { AssignRolesDto } from '../dto/assign-roles.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
 import { PaginationDto } from '@/common/dto/pagination.dto';
 import { ApiResponseDto } from '@/common/dto/api-response.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
@@ -32,10 +34,25 @@ export class UsersController {
     private readonly userRolesService: UserRolesService,
   ) {}
 
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Create new user with roles (Admin or Audit)' })
+  @ApiResponse({
+    status: 201,
+    description: 'User created successfully',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({ status: 409, description: 'Email, username, or phone already exists' })
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<ApiResponseDto<any>> {
+    const result = await this.usersService.createUser(createUserDto);
+    return new ApiResponseDto(true, 'User created successfully', result);
+  }
+
   @Get()
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get all users with pagination (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Get all users with pagination (Admin or Audit)' })
   @ApiResponse({
     status: 200,
     description: 'Users retrieved successfully',
@@ -60,8 +77,8 @@ export class UsersController {
 
   @Get(':id')
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get user by ID (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Get user by ID (Admin or Audit)' })
   @ApiResponse({
     status: 200,
     description: 'User retrieved successfully',
@@ -88,10 +105,29 @@ export class UsersController {
     return new ApiResponseDto(true, 'Profile updated successfully', result);
   }
 
+  @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Update user (Admin or Audit)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User updated successfully',
+    type: ApiResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 409, description: 'Email, username, or phone already exists' })
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<ApiResponseDto<any>> {
+    const result = await this.usersService.updateUser(id, updateUserDto);
+    return new ApiResponseDto(true, 'User updated successfully', result);
+  }
+
   @Put(':id/deactivate')
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Deactivate user (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Deactivate user (Admin or Audit)' })
   @ApiResponse({
     status: 200,
     description: 'User deactivated successfully',
@@ -102,10 +138,24 @@ export class UsersController {
     return new ApiResponseDto(true, 'User deactivated successfully', result);
   }
 
-  @Get(':id/roles')
+  @Put(':id/activate')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  @ApiOperation({ summary: 'Get user roles (Admin only)' })
+  @ApiOperation({ summary: 'Activate user (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User activated successfully',
+    type: ApiResponseDto,
+  })
+  async activateUser(@Param('id') id: string): Promise<ApiResponseDto<any>> {
+    const result = await this.usersService.activateUser(id);
+    return new ApiResponseDto(true, 'User activated successfully', result);
+  }
+
+  @Get(':id/roles')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Get user roles (Admin or Audit)' })
   @ApiResponse({
     status: 200,
     description: 'User roles retrieved successfully',
@@ -118,8 +168,8 @@ export class UsersController {
 
   @Post(':id/roles')
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Assign roles to user (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Assign roles to user (Admin or Audit)' })
   @ApiResponse({
     status: 201,
     description: 'Roles assigned successfully',
@@ -135,8 +185,8 @@ export class UsersController {
 
   @Post(':id/roles/:roleId')
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Add role to user (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Add role to user (Admin or Audit)' })
   @ApiResponse({
     status: 201,
     description: 'Role added successfully',
@@ -152,8 +202,8 @@ export class UsersController {
 
   @Delete(':id/roles/:roleId')
   @UseGuards(RolesGuard)
-  @Roles('admin')
-  @ApiOperation({ summary: 'Remove role from user (Admin only)' })
+  @Roles('admin', 'audit')
+  @ApiOperation({ summary: 'Remove role from user (Admin or Audit)' })
   @ApiResponse({
     status: 200,
     description: 'Role removed successfully',
