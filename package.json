@@ -1,7 +1,7 @@
 {
-  "name": "be-wms-nest",
+  "name": "be-approver-nest",
   "version": "0.0.1",
-  "description": "NestJS WMS with Clean Architecture",
+  "description": "NestJS Approver with Clean Architecture",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

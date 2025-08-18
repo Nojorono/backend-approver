@@ -34,6 +34,6 @@ export class UpdateUserDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsNumber()
-  roleId?: number;
-} 
+  @IsString()
+  roleId?: string;
+}

@@ -16,23 +16,32 @@ export class PermissionRepository implements IPermissionRepository {
     return this.repository.find({ relations: ['menu', 'role'] });
   }
 
-  async findById(id: number): Promise<Permission | null> {
-    return this.repository.findOne({ where: { id }, relations: ['menu', 'role'] });
+  async findById(id: string): Promise<Permission | null> {
+    return this.repository.findOne({
+      where: { id },
+      relations: ['menu', 'role'],
+    });
   }
 
-  async findByRoleId(roleId: number): Promise<Permission[]> {
-    return this.repository.find({ where: { roleId }, relations: ['menu', 'role'] });
+  async findByRoleId(roleId: string): Promise<Permission[]> {
+    return this.repository.find({
+      where: { roleId: roleId },
+      relations: ['menu', 'role'],
+    });
   }
 
-  async findMenuByRoleId(roleId: number): Promise<{ menus: any[] }> {
-    const permissions = await this.repository.find({ where: { roleId }, relations: ['menu'] });
-    
+  async findMenuByRoleId(roleId: string): Promise<{ menus: any[] }> {
+    const permissions = await this.repository.find({
+      where: { roleId: roleId },
+      relations: ['menu'],
+    });
+
     // Group actions by menu
-    const menuMap = new Map<number, any>();
-    
+    const menuMap = new Map<string, any>();
+
     for (const permission of permissions) {
       const menuId = permission.menu.id;
-      
+
       if (!menuMap.has(menuId)) {
         // Initialize menu if not exists
         menuMap.set(menuId, {
@@ -44,20 +53,23 @@ export class PermissionRepository implements IPermissionRepository {
           order: permission.menu.order,
           createdAt: permission.menu.createdAt,
           updatedAt: permission.menu.updatedAt,
-          actions: []
+          actions: [],
         });
       }
-      
+
       // Add action to the menu
       menuMap.get(menuId).actions.push(permission.action);
     }
-    
+
     const menus = Array.from(menuMap.values());
     return { menus };
   }
 
-  async findByMenuId(menuId: number): Promise<Permission[]> {
-    return this.repository.find({ where: { menuId }, relations: ['menu', 'role'] });
+  async findByMenuId(menuId: string): Promise<Permission[]> {
+    return this.repository.find({
+      where: { menuId: menuId },
+      relations: ['menu', 'role'],
+    });
   }
 
   async create(permission: Partial<Permission>): Promise<Permission> {
@@ -65,18 +77,21 @@ export class PermissionRepository implements IPermissionRepository {
     return this.repository.save(newPermission);
   }
 
-  async update(id: number, permission: Partial<Permission>): Promise<Permission | null> {
+  async update(
+    id: string,
+    permission: Partial<Permission>,
+  ): Promise<Permission | null> {
     await this.repository.update(id, permission);
     return this.findById(id);
   }
 
-  async delete(id: number): Promise<any> {
+  async delete(id: string): Promise<any> {
     const result = await this.repository.delete(id);
     return result;
   }
 
-  async deleteByRoleId(roleId: number): Promise<any> {
+  async deleteByRoleId(roleId: string): Promise<any> {
     const result = await this.repository.delete({ roleId });
     return result;
   }
-} 
+}

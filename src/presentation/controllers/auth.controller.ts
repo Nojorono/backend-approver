@@ -1,5 +1,16 @@
-import { Controller, Post, Body, UnauthorizedException, Inject } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from '../../infrastructure/services/auth.service';
 import { LoginDto } from '../../core/application/dtos/auth/login.dto';
 import { RegisterDto } from '../../core/application/dtos/auth/register.dto';
@@ -25,7 +36,10 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(loginDto.username, loginDto.password);
+    const user = await this.authService.validateUser(
+      loginDto.username,
+      loginDto.password,
+    );
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -43,7 +57,9 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 401, description: 'Email already exists' })
   async register(@Body() registerDto: RegisterDto) {
-    const existingUser = await this.userRepository.findByUsername(registerDto.username);
+    const existingUser = await this.userRepository.findByUsername(
+      registerDto.username,
+    );
     if (existingUser) {
       throw new UnauthorizedException('Email already exists');
     }
@@ -57,4 +73,4 @@ export class AuthController {
     const token = await this.authService.generateToken(user);
     return { token };
   }
-} 
+}

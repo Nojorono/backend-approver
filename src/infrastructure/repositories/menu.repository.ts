@@ -26,7 +26,7 @@ export class MenuRepository implements IMenuRepository {
     });
   }
 
-  async findById(id: number): Promise<Menu> {
+  async findById(id: string): Promise<Menu> {
     const menu = await this.repository.findOne({
       where: { id },
       relations: ['children'],
@@ -53,20 +53,20 @@ export class MenuRepository implements IMenuRepository {
     return this.repository.save(newMenu);
   }
 
-  async update(id: number, menu: Partial<Menu>): Promise<Menu> {
+  async update(id: string, menu: Partial<Menu>): Promise<Menu> {
     await this.repository.update(id, menu);
     return this.findById(id);
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }
 
-  async findChildren(parentId: number): Promise<Menu[]> {
+  async findChildren(parentId: string): Promise<Menu[]> {
     return this.repository.find({
       where: { parentId },
       relations: ['children'],
       order: { order: 'ASC' },
     });
   }
-} 
+}

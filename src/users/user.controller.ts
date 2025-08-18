@@ -1,5 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -13,8 +26,15 @@ export class UserController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new User' })
-  @ApiResponse({ status: 201, description: 'The User has been successfully created.', type: User })
-  @ApiResponse({ status: 409, description: 'User with this code already exists.' })
+  @ApiResponse({
+    status: 201,
+    description: 'The User has been successfully created.',
+    type: User,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'User with this code already exists.',
+  })
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
@@ -23,7 +43,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get all Users' })
   @ApiResponse({ status: 200, description: 'Return all Users.', type: [User] })
   findAll() {
-      return this.userService.findAll();
+    return this.userService.findAll();
   }
 
   @Get(':id')
@@ -36,21 +56,28 @@ export class UserController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a User' })
-  @ApiResponse({ status: 200, description: 'The User has been successfully updated.', type: User })
+  @ApiResponse({
+    status: 200,
+    description: 'The User has been successfully updated.',
+    type: User,
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
-  @ApiResponse({ status: 409, description: 'User with this code already exists.' })
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  @ApiResponse({
+    status: 409,
+    description: 'User with this code already exists.',
+  })
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a User' })
-  @ApiResponse({ status: 200, description: 'The User has been successfully deleted.' })
+  @ApiResponse({
+    status: 200,
+    description: 'The User has been successfully deleted.',
+  })
   @ApiResponse({ status: 404, description: 'User not found.' })
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }
-} 
+}

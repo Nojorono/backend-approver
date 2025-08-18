@@ -14,7 +14,7 @@ export class PermissionService {
     return this.permissionRepository.findAll();
   }
 
-  async findById(id: number): Promise<Permission> {
+  async findById(id: string): Promise<Permission> {
     const permission = await this.permissionRepository.findById(id);
     if (!permission) {
       throw new NotFoundException(`Permission with ID ${id} not found`);
@@ -22,11 +22,11 @@ export class PermissionService {
     return permission;
   }
 
-  async findByRoleId(roleId: number): Promise<Permission[]> {
+  async findByRoleId(roleId: string): Promise<Permission[]> {
     return this.permissionRepository.findByRoleId(roleId);
   }
 
-  async findByMenuId(menuId: number): Promise<Permission[]> {
+  async findByMenuId(menuId: string): Promise<Permission[]> {
     return this.permissionRepository.findByMenuId(menuId);
   }
 
@@ -34,25 +34,31 @@ export class PermissionService {
     return this.permissionRepository.create(createPermissionDto);
   }
 
-  async update(id: number, updatePermissionDto: Partial<PermissionDto>): Promise<Permission> {
-    const permission = await this.permissionRepository.update(id, updatePermissionDto);
+  async update(
+    id: string,
+    updatePermissionDto: Partial<PermissionDto>,
+  ): Promise<Permission> {
+    const permission = await this.permissionRepository.update(
+      id,
+      updatePermissionDto,
+    );
     if (!permission) {
       throw new NotFoundException(`Permission with ID ${id} not found`);
     }
     return permission;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     const deleted = await this.permissionRepository.delete(id);
     if (!deleted) {
       throw new NotFoundException(`Permission with ID ${id} not found`);
     }
   }
 
-  async deleteByRoleId(roleId: number): Promise<void> {
+  async deleteByRoleId(roleId: string): Promise<void> {
     const deleted = await this.permissionRepository.deleteByRoleId(roleId);
     if (!deleted) {
       throw new NotFoundException(`No permissions found for role ID ${roleId}`);
     }
   }
-} 
+}

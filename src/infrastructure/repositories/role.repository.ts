@@ -12,22 +12,22 @@ export class RoleRepository implements IRoleRepository {
   ) {}
 
   async findAll(): Promise<Role[]> {
-    return this.repository.find({ 
-      relations: ['permissions', 'permissions.menu'] 
+    return this.repository.find({
+      relations: ['permissions', 'permissions.menu'],
     });
   }
 
-  async findById(id: number): Promise<Role | null> {
-    return this.repository.findOne({ 
-      where: { id }, 
-      relations: ['permissions', 'permissions.menu'] 
+  async findById(id: string): Promise<Role | null> {
+    return this.repository.findOne({
+      where: { id: id },
+      relations: ['permissions', 'permissions.menu'],
     });
   }
 
   async findByName(name: string): Promise<Role | null> {
-    return this.repository.findOne({ 
-      where: { name }, 
-      relations: ['permissions', 'permissions.menu'] 
+    return this.repository.findOne({
+      where: { name: name },
+      relations: ['permissions', 'permissions.menu'],
     });
   }
 
@@ -36,13 +36,13 @@ export class RoleRepository implements IRoleRepository {
     return this.repository.save(newRole);
   }
 
-  async update(id: number, role: Partial<Role>): Promise<Role | null> {
+  async update(id: string, role: Partial<Role>): Promise<Role | null> {
     await this.repository.update(id, role);
     return this.findById(id);
   }
 
-  async delete(id: number): Promise<any> {
+  async delete(id: string): Promise<any> {
     const result = await this.repository.delete(id);
     return result;
   }
-} 
+}

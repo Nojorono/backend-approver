@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,9 +19,13 @@ export class UserService {
     if (!organizationId) {
       throw new BadRequestException('Organization ID is required');
     }
-    const existingUser = await this.repository.findByUsername(createUserDto.username);
+    const existingUser = await this.repository.findByUsername(
+      createUserDto.username,
+    );
     if (existingUser) {
-      throw new ConflictException(`User with username ${createUserDto.username} already exists`);
+      throw new ConflictException(
+        `User with username ${createUserDto.username} already exists`,
+      );
     }
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     createUserDto.password = hashedPassword;
@@ -38,9 +47,13 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     if (updateUserDto.username && updateUserDto.username !== user.username) {
-      const existingUser = await this.repository.findByUsername(updateUserDto.username);
+      const existingUser = await this.repository.findByUsername(
+        updateUserDto.username,
+      );
       if (existingUser) {
-        throw new ConflictException(`User with username ${updateUserDto.username} already exists`);
+        throw new ConflictException(
+          `User with username ${updateUserDto.username} already exists`,
+        );
       }
     }
     if (updateUserDto.password) {

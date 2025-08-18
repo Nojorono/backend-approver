@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateMenuDto {
@@ -17,14 +17,14 @@ export class UpdateMenuDto {
   @IsOptional()
   icon?: string;
 
-  @ApiProperty({ example: 1, required: false })
-  @IsNumber()
+  @ApiProperty({ example: 'uuid-string', required: false })
+  @IsString()
   @IsOptional()
-  parentId?: number | null;
+  parentId?: string | null;
 
   @ApiProperty({ example: 1, required: false })
   @IsInt()
   @Min(0)
   @IsOptional()
   order?: number;
-} 
+}

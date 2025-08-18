@@ -1,5 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PermissionService } from '../../infrastructure/services/permission.service';
 import { PermissionDto } from '../../core/application/dtos/permission/create-permission.dto';
 
@@ -21,21 +35,21 @@ export class PermissionController {
   @ApiResponse({ status: 200, description: 'Return permission by ID' })
   @ApiResponse({ status: 404, description: 'Permission not found' })
   async findOne(@Param('id') id: string) {
-    return this.permissionService.findById(+id);
+    return this.permissionService.findById(id);
   }
 
   @Get('role/:roleId')
   @ApiOperation({ summary: 'Get permissions by role ID' })
   @ApiResponse({ status: 200, description: 'Return permissions by role ID' })
   async findByRoleId(@Param('roleId') roleId: string) {
-    return this.permissionService.findByRoleId(+roleId);
+    return this.permissionService.findByRoleId(roleId);
   }
 
   @Get('menu/:menuId')
   @ApiOperation({ summary: 'Get permissions by menu ID' })
   @ApiResponse({ status: 200, description: 'Return permissions by menu ID' })
   async findByMenuId(@Param('menuId') menuId: string) {
-    return this.permissionService.findByMenuId(+menuId);
+    return this.permissionService.findByMenuId(menuId);
   }
 
   @Post()
@@ -53,7 +67,7 @@ export class PermissionController {
     @Param('id') id: string,
     @Body() updatePermissionDto: Partial<PermissionDto>,
   ) {
-    return this.permissionService.update(+id, updatePermissionDto);
+    return this.permissionService.update(id, updatePermissionDto);
   }
 
   @Delete(':id')
@@ -61,7 +75,7 @@ export class PermissionController {
   @ApiResponse({ status: 200, description: 'Permission deleted successfully' })
   @ApiResponse({ status: 404, description: 'Permission not found' })
   async remove(@Param('id') id: string) {
-    return this.permissionService.delete(+id);
+    return this.permissionService.delete(id);
   }
 
   @Delete('role/:roleId')
@@ -69,6 +83,6 @@ export class PermissionController {
   @ApiResponse({ status: 200, description: 'Permissions deleted successfully' })
   @ApiResponse({ status: 404, description: 'No permissions found for role' })
   async removeByRoleId(@Param('roleId') roleId: string) {
-    return this.permissionService.deleteByRoleId(+roleId);
+    return this.permissionService.deleteByRoleId(roleId);
   }
-} 
+}
