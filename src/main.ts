@@ -28,8 +28,8 @@ async function bootstrap() {
 
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('WMS API')
-    .setDescription('The WMS API description')
+    .setTitle('Approval App API')
+    .setDescription('The Approval App API description')
     .setVersion('1.0')
     .addBearerAuth(
       {
