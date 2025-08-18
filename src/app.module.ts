@@ -8,6 +8,7 @@ import { RolePermissionModule } from './infrastructure/modules/role-permission.m
 import { MenuModule } from './infrastructure/modules/menu.module';
 import { AuthModule } from './infrastructure/modules/auth.module';
 import { UserModule } from './users/user.module';
+import { InfobipModule } from './infobip/infobip.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UserModule } from './users/user.module';
     RolePermissionModule,
     MenuModule,
     UserModule,
+    InfobipModule,
   ],
   providers: [
     {
