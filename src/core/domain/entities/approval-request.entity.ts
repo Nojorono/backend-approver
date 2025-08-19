@@ -3,8 +3,11 @@ import {
   Column,
   Index,
   BeforeInsert,
+  OneToMany,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
+import { ApprovalProcess } from './approval-process.entity';
+import { NotificationTrack } from './notification-track.entity';
 
 @Entity('approval_requests')
 @Index(['code'], { unique: true })
@@ -26,6 +29,12 @@ export class ApprovalRequest extends BaseEntity {
 
   @Column({ nullable: true })
   status: string;
+
+  @OneToMany(() => NotificationTrack, (notificationTrack) => notificationTrack.approvalRequest)
+  notificationTracks: NotificationTrack[];
+
+  @OneToMany(() => ApprovalProcess, (approvalProcess) => approvalProcess.approvalRequest)
+  approvalProcesses: ApprovalProcess[];
 
   @Column({ nullable: true })
   createdBy: string;

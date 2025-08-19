@@ -11,6 +11,7 @@ import { UserModule } from './users/user.module';
 import { ApprovalRequestModule } from './approval-requests/approval-request.module';
 import { InfobipModule } from './infobip/infobip.module';
 import { S3Module } from './infrastructure/modules/s3.module';
+import { ApprovalProcessModule } from './approval-processes/approval-process.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { S3Module } from './infrastructure/modules/s3.module';
     UserModule,
     ApprovalRequestModule,
     S3Module,
+    ApprovalProcessModule,
     InfobipModule,
   ],
   providers: [
