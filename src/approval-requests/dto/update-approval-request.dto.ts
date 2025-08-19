@@ -28,4 +28,9 @@ export class UpdateApprovalRequestDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  createdBy?: string;
 }
