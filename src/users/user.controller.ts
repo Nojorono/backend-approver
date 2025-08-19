@@ -19,6 +19,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { VerifyPinDto } from './dto/verify-pin.dto';
 import { SetPinDto } from './dto/set-pin.dto';
 import { User } from '../core/domain/entities/user.entity';
+import { Public } from '../core/decorators/public.decorator';
 
 @ApiTags('User')
 @Controller('user')
@@ -83,6 +84,7 @@ export class UserController {
     return this.userService.remove(id);
   }
 
+  @Public()
   @Post('verify-pin/:id')
   @ApiOperation({ summary: 'Verify PIN code for a user' })
   @ApiResponse({ 
