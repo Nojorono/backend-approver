@@ -9,14 +9,23 @@ export interface InfobipConfig {
   retries: number;
 }
 
-export const getInfobipConfig = (configService: ConfigService): InfobipConfig => {
-  let baseUrl = configService.get('INFOBIP_BASE_URL', 'https://api.infobip.com');
-  
+export const getInfobipConfig = (
+  configService: ConfigService,
+): InfobipConfig => {
+  let baseUrl = configService.get(
+    'INFOBIP_BASE_URL',
+    'https://api.infobip.com',
+  );
+
   // Ensure the URL has a protocol
-  if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+  if (
+    baseUrl &&
+    !baseUrl.startsWith('http://') &&
+    !baseUrl.startsWith('https://')
+  ) {
     baseUrl = `https://${baseUrl}`;
   }
-  
+
   return {
     baseUrl,
     apiKey: configService.get('INFOBIP_API_KEY') || '',

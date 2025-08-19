@@ -20,7 +20,8 @@ export class InfobipErrorHandler {
 
     // Extract error details
     if (error.response?.data?.requestError?.serviceException?.text) {
-      errorInfo.message = error.response.data.requestError.serviceException.text;
+      errorInfo.message =
+        error.response.data.requestError.serviceException.text;
       errorInfo.details = error.response.data;
     } else if (error.response?.data?.message) {
       errorInfo.message = error.response.data.message;
@@ -79,7 +80,8 @@ export class InfobipErrorHandler {
         case 'ECONNABORTED':
           errorInfo.category = 'network';
           errorInfo.retryable = true;
-          errorInfo.message = 'Request timeout - Service is taking too long to respond';
+          errorInfo.message =
+            'Request timeout - Service is taking too long to respond';
           break;
         case 'ENOTFOUND':
           errorInfo.category = 'network';
@@ -104,7 +106,7 @@ export class InfobipErrorHandler {
   static logError(operation: string, error: any, attempt?: number): void {
     const errorInfo = this.analyzeError(error);
     const attemptInfo = attempt ? ` (Attempt ${attempt})` : '';
-    
+
     this.logger.error(`Infobip ${operation} failed${attemptInfo}:`, {
       operation,
       status: errorInfo.status,
@@ -137,7 +139,7 @@ export class InfobipErrorHandler {
 
   static createFallbackResponse(operation: string, error: any): any {
     const errorInfo = this.analyzeError(error);
-    
+
     return {
       success: false,
       error: {

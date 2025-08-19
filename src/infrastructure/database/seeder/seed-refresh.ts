@@ -34,12 +34,12 @@ async function seedRefresh() {
     console.log('Database connection established.');
 
     console.log('Clearing existing data...');
-    
+
     await dataSource.query('DELETE FROM permissions');
     await dataSource.query('DELETE FROM users');
     await dataSource.query('DELETE FROM roles');
     await dataSource.query('DELETE FROM menus');
-    
+
     console.log('Existing data cleared successfully.');
 
     const seederRunner = new SeederRunner(dataSource);

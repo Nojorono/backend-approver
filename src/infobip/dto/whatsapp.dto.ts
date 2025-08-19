@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsArray, IsBoolean, IsNumber, IsDateString, IsUrl, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsDateString,
+  IsUrl,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum WhatsAppMessageType {
@@ -53,8 +62,8 @@ export class WhatsAppTextMessageDto {
       shortenUrl: true,
       trackClicks: true,
       trackingUrl: 'https://example.com/click-report',
-      removeProtocol: true
-    }
+      removeProtocol: true,
+    },
   })
   @IsOptional()
   urlOptions?: {
@@ -104,8 +113,8 @@ export class WhatsAppMediaMessageDto {
       shortenUrl: true,
       trackClicks: true,
       trackingUrl: 'https://example.com/click-report',
-      removeProtocol: true
-    }
+      removeProtocol: true,
+    },
   })
   @IsOptional()
   urlOptions?: {
@@ -125,7 +134,7 @@ export class WhatsAppLocationDto {
   @IsNumber()
   latitude: number;
 
-  @ApiProperty({ example: -74.0060 })
+  @ApiProperty({ example: -74.006 })
   @IsNumber()
   longitude: number;
 
@@ -159,8 +168,8 @@ export class WhatsAppLocationDto {
       shortenUrl: true,
       trackClicks: true,
       trackingUrl: 'https://example.com/click-report',
-      removeProtocol: true
-    }
+      removeProtocol: true,
+    },
   })
   @IsOptional()
   urlOptions?: {
@@ -214,8 +223,8 @@ export class WhatsAppContactDto {
       shortenUrl: true,
       trackClicks: true,
       trackingUrl: 'https://example.com/click-report',
-      removeProtocol: true
-    }
+      removeProtocol: true,
+    },
   })
   @IsOptional()
   urlOptions?: {
@@ -265,8 +274,8 @@ export class WhatsAppTemplateDto {
       shortenUrl: true,
       trackClicks: true,
       trackingUrl: 'https://example.com/click-report',
-      removeProtocol: true
-    }
+      removeProtocol: true,
+    },
   })
   @IsOptional()
   urlOptions?: {

@@ -10,7 +10,9 @@ export class UserSeeder {
     const userRepository = this.dataSource.getRepository(User);
     const roleRepository = this.dataSource.getRepository(Role);
 
-    const adminRole = await roleRepository.findOne({ where: { name: 'admin' } });
+    const adminRole = await roleRepository.findOne({
+      where: { name: 'admin' },
+    });
 
     if (!adminRole) {
       console.log('Admin role not found. Please run role seeder first.');
@@ -43,7 +45,9 @@ export class UserSeeder {
       if (!existingUser) {
         const user = userRepository.create(userData);
         await userRepository.save(user);
-        console.log(`Created user: ${userData.username} with role: ${userData.roleId}`);
+        console.log(
+          `Created user: ${userData.username} with role: ${userData.roleId}`,
+        );
       } else {
         console.log(`User already exists: ${userData.username}`);
       }

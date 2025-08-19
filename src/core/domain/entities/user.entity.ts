@@ -1,4 +1,12 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { Role } from './role.entity';
 import { BaseEntity } from './base.entity';
 import * as bcrypt from 'bcrypt';

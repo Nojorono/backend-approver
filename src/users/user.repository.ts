@@ -22,7 +22,9 @@ export class UserRepository {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    const user = await this.repository.findOne({ where: { username: username } });
+    const user = await this.repository.findOne({
+      where: { username: username },
+    });
     if (!user) {
       return null;
     }
@@ -30,7 +32,7 @@ export class UserRepository {
   }
 
   async findOne(id: string): Promise<User | null> {
-    const user = await this.repository.findOne({ where: { id: id  } });
+    const user = await this.repository.findOne({ where: { id: id } });
     if (!user) {
       return null;
     }
@@ -51,6 +53,6 @@ export class UserRepository {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.repository.delete(id); 
+    await this.repository.delete(id);
   }
 }

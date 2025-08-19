@@ -8,7 +8,9 @@ import { RolePermissionModule } from './infrastructure/modules/role-permission.m
 import { MenuModule } from './infrastructure/modules/menu.module';
 import { AuthModule } from './infrastructure/modules/auth.module';
 import { UserModule } from './users/user.module';
+import { ApprovalRequestModule } from './approval-requests/approval-request.module';
 import { InfobipModule } from './infobip/infobip.module';
+import { S3Module } from './infrastructure/modules/s3.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { InfobipModule } from './infobip/infobip.module';
     RolePermissionModule,
     MenuModule,
     UserModule,
+    ApprovalRequestModule,
+    S3Module,
     InfobipModule,
   ],
   providers: [

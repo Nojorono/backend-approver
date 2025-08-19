@@ -1,4 +1,12 @@
-import { IsEmail, IsString, IsOptional, IsArray, IsBoolean, IsNumber, IsDateString } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class EmailAddressDto {
@@ -27,7 +35,10 @@ export class EmailAttachmentDto {
 }
 
 export class SendEmailDto {
-  @ApiPropertyOptional({ example: 'noreply@kcsi.id', description: 'Optional: Uses registered sender if not provided' })
+  @ApiPropertyOptional({
+    example: 'noreply@kcsi.id',
+    description: 'Optional: Uses registered sender if not provided',
+  })
   @IsOptional()
   @IsEmail()
   from?: string;
@@ -50,7 +61,9 @@ export class SendEmailDto {
   @IsString()
   subject: string;
 
-  @ApiPropertyOptional({ example: '<h1>Welcome!</h1><p>Thank you for joining us.</p>' })
+  @ApiPropertyOptional({
+    example: '<h1>Welcome!</h1><p>Thank you for joining us.</p>',
+  })
   @IsOptional()
   @IsString()
   html?: string;

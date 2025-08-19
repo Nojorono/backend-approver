@@ -1,23 +1,29 @@
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Body, 
-  Query, 
-  Param, 
-  HttpCode, 
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  Param,
+  HttpCode,
   HttpStatus,
-  Request
+  Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { InfobipEmailService } from '../services/infobip-email.service';
 import { InfobipAuthService } from '../services/infobip-auth.service';
-import { 
-  SendEmailDto, 
-  ValidateEmailDto, 
-  EmailValidationResponseDto, 
-  EmailReportDto, 
-  EmailReportsQueryDto 
+import {
+  SendEmailDto,
+  ValidateEmailDto,
+  EmailValidationResponseDto,
+  EmailReportDto,
+  EmailReportsQueryDto,
 } from '../dto/email.dto';
 import { ApiResponseDto } from '../../core/application/dtos/api.response';
 
@@ -42,7 +48,7 @@ export class InfobipEmailController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendEmail(
     @Body() emailData: SendEmailDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
@@ -62,7 +68,7 @@ export class InfobipEmailController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendBulkEmails(
     @Body() emails: SendEmailDto[],
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
@@ -82,7 +88,7 @@ export class InfobipEmailController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async validateEmail(
     @Body() emailData: ValidateEmailDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<EmailValidationResponseDto>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
@@ -107,12 +113,16 @@ export class InfobipEmailController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getEmailReports(
     @Query() query: EmailReportsQueryDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
     const result = await this.emailService.getEmailReports(query, authMethod);
-    return new ApiResponseDto(true, 'Email reports retrieved successfully', result);
+    return new ApiResponseDto(
+      true,
+      'Email reports retrieved successfully',
+      result,
+    );
   }
 
   @Get('reports/:messageId')
@@ -127,12 +137,19 @@ export class InfobipEmailController {
   @ApiResponse({ status: 404, description: 'Report not found' })
   async getEmailReportById(
     @Param('messageId') messageId: string,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<EmailReportDto>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.emailService.getEmailReportById(messageId, authMethod);
-    return new ApiResponseDto(true, 'Email report retrieved successfully', result);
+    const result = await this.emailService.getEmailReportById(
+      messageId,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'Email report retrieved successfully',
+      result,
+    );
   }
 
   @Get('templates')
@@ -144,12 +161,14 @@ export class InfobipEmailController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getEmailTemplates(
-    @Request() req: any
-  ): Promise<ApiResponseDto<any>> {
+  async getEmailTemplates(@Request() req: any): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
     const result = await this.emailService.getEmailTemplates(authMethod);
-    return new ApiResponseDto(true, 'Email templates retrieved successfully', result);
+    return new ApiResponseDto(
+      true,
+      'Email templates retrieved successfully',
+      result,
+    );
   }
 }

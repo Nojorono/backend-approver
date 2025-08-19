@@ -8,19 +8,8 @@ import { InfobipWhatsAppController } from './controllers/infobip-whatsapp.contro
 
 @Module({
   imports: [ConfigModule],
-  controllers: [
-    InfobipEmailController,
-    InfobipWhatsAppController,
-  ],
-  providers: [
-    InfobipAuthService,
-    InfobipEmailService,
-    InfobipWhatsAppService,
-  ],
-  exports: [
-    InfobipAuthService,
-    InfobipEmailService,
-    InfobipWhatsAppService,
-  ],
+  controllers: [InfobipEmailController, InfobipWhatsAppController],
+  providers: [InfobipAuthService, InfobipEmailService, InfobipWhatsAppService],
+  exports: [InfobipAuthService, InfobipEmailService, InfobipWhatsAppService],
 })
 export class InfobipModule {}

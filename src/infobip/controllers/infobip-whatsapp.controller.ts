@@ -1,19 +1,28 @@
-import { 
-  Controller, 
-  Post, 
-  Get, 
-  Body, 
-  Query, 
-  Param, 
-  HttpCode, 
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  Param,
+  HttpCode,
   HttpStatus,
   UseGuards,
-  Request
+  Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { InfobipWhatsAppService } from '../services/infobip-whatsapp.service';
-import { InfobipAuthService, AuthMethod } from '../services/infobip-auth.service';
-import { 
+import {
+  InfobipAuthService,
+  AuthMethod,
+} from '../services/infobip-auth.service';
+import {
   WhatsAppTextMessageDto,
   WhatsAppMediaMessageDto,
   WhatsAppLocationDto,
@@ -23,7 +32,7 @@ import {
   WhatsAppReportDto,
   WhatsAppReportsQueryDto,
   SendWhatsAppMessageDto,
-  WhatsAppMessageType
+  WhatsAppMessageType,
 } from '../dto/whatsapp.dto';
 import { ApiResponseDto } from '../../core/application/dtos/api.response';
 
@@ -48,12 +57,19 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendMessage(
     @Body() messageData: SendWhatsAppMessageDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.sendMessage(messageData, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp message sent successfully', result);
+    const result = await this.whatsappService.sendMessage(
+      messageData,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp message sent successfully',
+      result,
+    );
   }
 
   @Post('send/text')
@@ -68,17 +84,27 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendTextMessage(
     @Body() messageData: WhatsAppTextMessageDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.sendTextMessage(messageData, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp text message sent successfully', result);
+    const result = await this.whatsappService.sendTextMessage(
+      messageData,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp text message sent successfully',
+      result,
+    );
   }
 
   @Post('send/media')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Send WhatsApp media message (document, image, video, audio, sticker)' })
+  @ApiOperation({
+    summary:
+      'Send WhatsApp media message (document, image, video, audio, sticker)',
+  })
   @ApiResponse({
     status: 200,
     description: 'WhatsApp media message sent successfully',
@@ -87,14 +113,25 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendMediaMessage(
-    @Body() messageData: WhatsAppMediaMessageDto & { mediaType: 'document' | 'image' | 'video' | 'audio' | 'sticker' },
-    @Request() req: any
+    @Body()
+    messageData: WhatsAppMediaMessageDto & {
+      mediaType: 'document' | 'image' | 'video' | 'audio' | 'sticker';
+    },
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
     const { mediaType, ...data } = messageData;
-    const result = await this.whatsappService.sendMediaMessage(data, mediaType, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp media message sent successfully', result);
+    const result = await this.whatsappService.sendMediaMessage(
+      data,
+      mediaType,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp media message sent successfully',
+      result,
+    );
   }
 
   @Post('send/location')
@@ -109,12 +146,19 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendLocationMessage(
     @Body() messageData: WhatsAppLocationDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.sendLocationMessage(messageData, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp location message sent successfully', result);
+    const result = await this.whatsappService.sendLocationMessage(
+      messageData,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp location message sent successfully',
+      result,
+    );
   }
 
   @Post('send/contact')
@@ -129,12 +173,19 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendContactMessage(
     @Body() messageData: WhatsAppContactDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.sendContactMessage(messageData, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp contact message sent successfully', result);
+    const result = await this.whatsappService.sendContactMessage(
+      messageData,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp contact message sent successfully',
+      result,
+    );
   }
 
   @Post('send/template')
@@ -149,12 +200,19 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async sendTemplateMessage(
     @Body() messageData: WhatsAppTemplateDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.sendTemplateMessage(messageData, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp template message sent successfully', result);
+    const result = await this.whatsappService.sendTemplateMessage(
+      messageData,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp template message sent successfully',
+      result,
+    );
   }
 
   @Get('templates')
@@ -167,12 +225,16 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getTemplates(
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<WhatsAppTemplateInfoDto[]>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
     const result = await this.whatsappService.getTemplates(authMethod);
-    return new ApiResponseDto(true, 'WhatsApp templates retrieved successfully', result);
+    return new ApiResponseDto(
+      true,
+      'WhatsApp templates retrieved successfully',
+      result,
+    );
   }
 
   @Get('reports')
@@ -192,12 +254,19 @@ export class InfobipWhatsAppController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getWhatsAppReports(
     @Query() query: WhatsAppReportsQueryDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<any>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.getWhatsAppReports(query, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp reports retrieved successfully', result);
+    const result = await this.whatsappService.getWhatsAppReports(
+      query,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp reports retrieved successfully',
+      result,
+    );
   }
 
   @Get('reports/:messageId')
@@ -212,11 +281,18 @@ export class InfobipWhatsAppController {
   @ApiResponse({ status: 404, description: 'Report not found' })
   async getWhatsAppReportById(
     @Param('messageId') messageId: string,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<ApiResponseDto<WhatsAppReportDto>> {
     // Use OAuth2 as primary authentication method
     const authMethod = 'oauth2';
-    const result = await this.whatsappService.getWhatsAppReportById(messageId, authMethod);
-    return new ApiResponseDto(true, 'WhatsApp report retrieved successfully', result);
+    const result = await this.whatsappService.getWhatsAppReportById(
+      messageId,
+      authMethod,
+    );
+    return new ApiResponseDto(
+      true,
+      'WhatsApp report retrieved successfully',
+      result,
+    );
   }
 }

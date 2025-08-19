@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
-import { getInfobipConfig, INFOBIP_ENDPOINTS } from '../../core/config/infobip.config';
+import {
+  getInfobipConfig,
+  INFOBIP_ENDPOINTS,
+} from '../../core/config/infobip.config';
 
 export interface OAuthTokenResponse {
   access_token: string;
@@ -37,40 +40,49 @@ export class InfobipAuthService {
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
     this.httpClient.interceptors.request.use(
       (config) => {
-        this.logger.debug(`Making request to: ${config.method?.toUpperCase()} ${config.url}`);
+        this.logger.debug(
+          `Making request to: ${config.method?.toUpperCase()} ${config.url}`,
+        );
         return config;
       },
       (error) => {
         this.logger.error('Request error:', error);
         return Promise.reject(error);
-      }
+      },
     );
 
     this.httpClient.interceptors.response.use(
       (response) => {
-        this.logger.debug(`Response received: ${response.status} ${response.statusText}`);
+        this.logger.debug(
+          `Response received: ${response.status} ${response.statusText}`,
+        );
         return response;
       },
       (error) => {
-        this.logger.error('Response error:', error.response?.data || error.message);
+        this.logger.error(
+          'Response error:',
+          error.response?.data || error.message,
+        );
         return Promise.reject(error);
-      }
+      },
     );
   }
 
-  async getAuthenticatedClient(authMethod: AuthMethod = 'oauth2'): Promise<AxiosInstance> {
+  async getAuthenticatedClient(
+    authMethod: AuthMethod = 'oauth2',
+  ): Promise<AxiosInstance> {
     const client = axios.create({
       baseURL: this.config.baseUrl,
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     });
 
@@ -82,16 +94,22 @@ export class InfobipAuthService {
 
       case 'api_key':
         if (!this.config.apiKey) {
-          throw new Error('Infobip API key is required for API key authentication');
+          throw new Error(
+            'Infobip API key is required for API key authentication',
+          );
         }
         client.defaults.headers.Authorization = `App ${this.config.apiKey}`;
         break;
 
       case 'basic_auth':
         if (!this.config.username || !this.config.password) {
-          throw new Error('Infobip username and password are required for basic authentication');
+          throw new Error(
+            'Infobip username and password are required for basic authentication',
+          );
         }
-        const credentials = Buffer.from(`${this.config.username}:${this.config.password}`).toString('base64');
+        const credentials = Buffer.from(
+          `${this.config.username}:${this.config.password}`,
+        ).toString('base64');
         client.defaults.headers.Authorization = `Basic ${credentials}`;
         break;
 
@@ -108,13 +126,17 @@ export class InfobipAuthService {
   }
 
   async getOAuthToken(): Promise<string> {
-    if (this.oauthToken && this.oauthExpiresAt && Date.now() < this.oauthExpiresAt) {
+    if (
+      this.oauthToken &&
+      this.oauthExpiresAt &&
+      Date.now() < this.oauthExpiresAt
+    ) {
       return this.oauthToken;
     }
 
     try {
       this.logger.log('Requesting OAuth2 token...');
-      
+
       const response = await this.httpClient.post<OAuthTokenResponse>(
         INFOBIP_ENDPOINTS.AUTH.OAUTH_TOKEN,
         {
@@ -126,11 +148,12 @@ export class InfobipAuthService {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-        }
+        },
       );
 
       this.oauthToken = response.data.access_token;
-      this.oauthExpiresAt = Date.now() + (response.data.expires_in * 1000) - 60000; // Expire 1 minute early
+      this.oauthExpiresAt =
+        Date.now() + response.data.expires_in * 1000 - 60000; // Expire 1 minute early
 
       this.logger.log('OAuth2 token obtained successfully');
       return this.oauthToken;
@@ -141,19 +164,23 @@ export class InfobipAuthService {
   }
 
   async getIBSSOToken(): Promise<string> {
-    if (this.ibssoToken && this.ibssoExpiresAt && Date.now() < this.ibssoExpiresAt) {
+    if (
+      this.ibssoToken &&
+      this.ibssoExpiresAt &&
+      Date.now() < this.ibssoExpiresAt
+    ) {
       return this.ibssoToken;
     }
 
     try {
       this.logger.log('Requesting IBSSO token...');
-      
+
       const response = await this.httpClient.post<IBSSOTokenResponse>(
         INFOBIP_ENDPOINTS.AUTH.IBSSO_SESSION,
         {
           username: this.config.username,
           password: this.config.password,
-        }
+        },
       );
 
       this.ibssoToken = response.data.token;

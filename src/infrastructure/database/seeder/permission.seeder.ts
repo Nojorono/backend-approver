@@ -11,7 +11,9 @@ export class PermissionSeeder {
     const roleRepository = this.dataSource.getRepository(Role);
     const menuRepository = this.dataSource.getRepository(Menu);
 
-    const adminRole = await roleRepository.findOne({ where: { name: 'admin' } });
+    const adminRole = await roleRepository.findOne({
+      where: { name: 'admin' },
+    });
 
     if (!adminRole) {
       console.log('Admin role not found. Please run role seeder first.');
@@ -49,9 +51,13 @@ export class PermissionSeeder {
       if (!existingPermission) {
         const permission = permissionRepository.create(permissionData);
         await permissionRepository.save(permission);
-        console.log(`Created permission: ${permissionData.action} for menu ${permissionData.menuId} and role ${permissionData.roleId}`);
+        console.log(
+          `Created permission: ${permissionData.action} for menu ${permissionData.menuId} and role ${permissionData.roleId}`,
+        );
       } else {
-        console.log(`Permission already exists: ${permissionData.action} for menu ${permissionData.menuId} and role ${permissionData.roleId}`);
+        console.log(
+          `Permission already exists: ${permissionData.action} for menu ${permissionData.menuId} and role ${permissionData.roleId}`,
+        );
       }
     }
   }
