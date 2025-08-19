@@ -77,13 +77,50 @@ export class ApprovalRequestController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete an Approval Request' })
+  @ApiOperation({ summary: 'Soft delete an Approval Request' })
   @ApiResponse({
     status: 200,
-    description: 'The Approval Request has been successfully deleted.',
+    description: 'The Approval Request has been successfully soft deleted.',
   })
   @ApiResponse({ status: 404, description: 'Approval Request not found.' })
   remove(@Param('id') id: string) {
     return this.approvalRequestService.remove(id);
+  }
+
+  @Get('with-deleted/:id')
+  @ApiOperation({ summary: 'Get an Approval Request by id including soft deleted' })
+  @ApiResponse({ status: 200, description: 'Return the Approval Request including soft deleted.', type: ApprovalRequest })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  findWithDeleted(@Param('id') id: string) {
+    return this.approvalRequestService.findWithDeleted(id);
+  }
+
+  @Get('all/with-deleted')
+  @ApiOperation({ summary: 'Get all Approval Requests including soft deleted' })
+  @ApiResponse({ status: 200, description: 'Return all Approval Requests including soft deleted.', type: [ApprovalRequest] })
+  findAllWithDeleted() {
+    return this.approvalRequestService.findAllWithDeleted();
+  }
+
+  @Patch('restore/:id')
+  @ApiOperation({ summary: 'Restore a soft deleted Approval Request' })
+  @ApiResponse({
+    status: 200,
+    description: 'The Approval Request has been successfully restored.',
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  restore(@Param('id') id: string) {
+    return this.approvalRequestService.restore(id);
+  }
+
+  @Delete('hard-delete/:id')
+  @ApiOperation({ summary: 'Hard delete an Approval Request (permanent)' })
+  @ApiResponse({
+    status: 200,
+    description: 'The Approval Request has been permanently deleted.',
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  hardDelete(@Param('id') id: string) {
+    return this.approvalRequestService.hardDelete(id);
   }
 }

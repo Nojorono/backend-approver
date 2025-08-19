@@ -18,12 +18,15 @@ export class ApprovalRequestRepository {
   }
 
   async findAll(): Promise<ApprovalRequest[]> {
-    return await this.repository.find();
+    return await this.repository.find({
+      withDeleted: false,
+    });
   }
 
   async findByCode(code: string): Promise<ApprovalRequest | null> {
     const approvalRequest = await this.repository.findOne({
       where: { code: code },
+      withDeleted: false,
     });
     if (!approvalRequest) {
       return null;
@@ -34,11 +37,15 @@ export class ApprovalRequestRepository {
   async findByStatus(status: string): Promise<ApprovalRequest[]> {
     return await this.repository.find({
       where: { status: status },
+      withDeleted: false,
     });
   }
 
   async findOne(id: string): Promise<ApprovalRequest | null> {
-    const approvalRequest = await this.repository.findOne({ where: { id: id } });
+    const approvalRequest = await this.repository.findOne({ 
+      where: { id: id },
+      withDeleted: false,
+    });
     if (!approvalRequest) {
       return null;
     }
@@ -56,6 +63,39 @@ export class ApprovalRequestRepository {
 
   async remove(id: string): Promise<void> {
     const approvalRequest = await this.findOne(id);
+    if (!approvalRequest) {
+      throw new NotFoundException('Approval request not found');
+    }
+    await this.repository.softDelete(id);
+  }
+
+  async findWithDeleted(id: string): Promise<ApprovalRequest | null> {
+    const approvalRequest = await this.repository.findOne({ 
+      where: { id: id },
+      withDeleted: true,
+    });
+    if (!approvalRequest) {
+      return null;
+    }
+    return approvalRequest;
+  }
+
+  async findAllWithDeleted(): Promise<ApprovalRequest[]> {
+    return await this.repository.find({
+      withDeleted: true,
+    });
+  }
+
+  async restore(id: string): Promise<void> {
+    const approvalRequest = await this.findWithDeleted(id);
+    if (!approvalRequest) {
+      throw new NotFoundException('Approval request not found');
+    }
+    await this.repository.restore(id);
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    const approvalRequest = await this.findWithDeleted(id);
     if (!approvalRequest) {
       throw new NotFoundException('Approval request not found');
     }

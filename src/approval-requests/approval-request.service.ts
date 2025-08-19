@@ -52,4 +52,26 @@ export class ApprovalRequestService {
     await this.findOne(id);
     await this.repository.remove(id);
   }
+
+  async findWithDeleted(id: string): Promise<ApprovalRequest> {
+    const approvalRequest = await this.repository.findWithDeleted(id);
+    if (!approvalRequest) {
+      throw new NotFoundException(`Approval request with ID ${id} not found`);
+    }
+    return approvalRequest;
+  }
+
+  async findAllWithDeleted(): Promise<ApprovalRequest[]> {
+    return await this.repository.findAllWithDeleted();
+  }
+
+  async restore(id: string): Promise<void> {
+    await this.findWithDeleted(id);
+    await this.repository.restore(id);
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    await this.findWithDeleted(id);
+    await this.repository.hardDelete(id);
+  }
 }

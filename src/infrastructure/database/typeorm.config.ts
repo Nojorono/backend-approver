@@ -25,4 +25,5 @@ export const getTypeOrmConfig = (
   migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
   synchronize: false,
   logging: true,
+  subscribers: [],
 });
