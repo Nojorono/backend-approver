@@ -2,11 +2,15 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerifyPinDto } from './dto/verify-pin.dto';
+import { SetPinDto } from './dto/set-pin.dto';
 import { User } from '../core/domain/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -58,5 +62,37 @@ export class UserService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.repository.remove(id);
+  }
+
+  async verifyPin(id: string, verifyPinDto: VerifyPinDto): Promise<{ success: boolean; message: string }> {
+    const user = await this.findOne(id);
+    
+    if (!user.pin) {
+      throw new BadRequestException('User does not have a PIN set');
+    }
+
+    const isPinValid = await bcrypt.compare(verifyPinDto.pin, user.pin);
+    
+    if (!isPinValid) {
+      throw new BadRequestException('Invalid PIN code');
+    }
+
+    return {
+      success: true,
+      message: 'PIN verification successful',
+    };
+  }
+
+  async setPin(id: string, setPinDto: SetPinDto): Promise<{ success: boolean; message: string }> {
+    const user = await this.findOne(id);
+    
+    const hashedPin = await bcrypt.hash(setPinDto.pin, 12);
+    
+    await this.repository.update(id, { pin: hashedPin });
+    
+    return {
+      success: true,
+      message: 'PIN has been set successfully',
+    };
   }
 }

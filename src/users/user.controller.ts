@@ -16,6 +16,8 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { VerifyPinDto } from './dto/verify-pin.dto';
+import { SetPinDto } from './dto/set-pin.dto';
 import { User } from '../core/domain/entities/user.entity';
 
 @ApiTags('User')
@@ -79,5 +81,43 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
+  }
+
+  @Post('verify-pin/:id')
+  @ApiOperation({ summary: 'Verify PIN code for a user' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'PIN code verified successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'PIN verification successful' }
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid PIN code or user has no PIN set.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  verifyPin(@Param('id') id: string, @Body() verifyPinDto: VerifyPinDto) {
+    return this.userService.verifyPin(id, verifyPinDto);
+  }
+
+  @Post('set-pin/:id')
+  @ApiOperation({ summary: 'Set or update PIN code for a user' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'PIN has been set successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'PIN has been set successfully' }
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Invalid PIN format.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  setPin(@Param('id') id: string, @Body() setPinDto: SetPinDto) {
+    return this.userService.setPin(id, setPinDto);
   }
 }
