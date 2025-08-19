@@ -41,6 +41,7 @@ export const INFOBIP_ENDPOINTS = {
     SEND: '/email/3/send',
     VALIDATE: '/email/2/validation',
     REPORTS: '/email/1/reports',
+    MESSAGE_LOGS: '/email/1/logs',
   },
   WHATSAPP: {
     SEND_TEXT: '/whatsapp/1/message/text',

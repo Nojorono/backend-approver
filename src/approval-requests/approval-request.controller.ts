@@ -19,6 +19,13 @@ import { ApprovalRequestService } from './approval-request.service';
 import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { UpdateApprovalRequestDto } from './dto/update-approval-request.dto';
 import { ApprovalRequest } from '../core/domain/entities/approval-request.entity';
+import { 
+  SendNotificationDto, 
+  SendSingleEmailDto, 
+  SendSingleWhatsAppDto 
+} from './dto/send-notification.dto';
+import { SendApproverNotificationDto } from './dto/send-approver-notification.dto';
+import { NotificationTrack } from '../core/domain/entities/notification-track.entity';
 
 @ApiTags('Approval Requests')
 @Controller('approval-requests')
@@ -122,5 +129,104 @@ export class ApprovalRequestController {
   @ApiResponse({ status: 404, description: 'Approval Request not found.' })
   hardDelete(@Param('id') id: string) {
     return this.approvalRequestService.hardDelete(id);
+  }
+
+  @Post('notifications/send')
+  @ApiOperation({ summary: 'Send notifications to approvers' })
+  @ApiResponse({
+    status: 201,
+    description: 'Notifications sent successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  sendNotifications(@Body() sendNotificationDto: SendNotificationDto) {
+    return this.approvalRequestService.sendNotificationToApprovers(
+      sendNotificationDto.approvalRequestId,
+      sendNotificationDto.emailRecipients || [],
+      sendNotificationDto.whatsappRecipients || [],
+    );
+  }
+
+  @Post('notifications/send-to-approvers')
+  @ApiOperation({ summary: 'Send notifications to approvers automatically from approval request' })
+  @ApiResponse({
+    status: 201,
+    description: 'Notifications sent to approvers successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  sendNotificationsToApprovers(@Body() sendApproverNotificationDto: SendApproverNotificationDto) {
+    return this.approvalRequestService.sendNotificationsToApprovers(
+      sendApproverNotificationDto.approvalRequestId,
+      sendApproverNotificationDto.subject,
+      sendApproverNotificationDto.emailContent,
+      sendApproverNotificationDto.whatsappContent,
+    );
+  }
+
+  @Post('notifications/send-email')
+  @ApiOperation({ summary: 'Send single email notification' })
+  @ApiResponse({
+    status: 201,
+    description: 'Email sent successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  sendEmail(@Body() sendEmailDto: SendSingleEmailDto) {
+    return this.approvalRequestService.sendNotificationToApprovers(
+      sendEmailDto.approvalRequestId,
+      [{ email: sendEmailDto.recipientEmail, subject: sendEmailDto.subject, content: sendEmailDto.content }],
+      [],
+    );
+  }
+
+  @Post('notifications/send-whatsapp')
+  @ApiOperation({ summary: 'Send single WhatsApp notification' })
+  @ApiResponse({
+    status: 201,
+    description: 'WhatsApp message sent successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  sendWhatsApp(@Body() sendWhatsAppDto: SendSingleWhatsAppDto) {
+    return this.approvalRequestService.sendNotificationToApprovers(
+      sendWhatsAppDto.approvalRequestId,
+      [],
+      [{ phone: sendWhatsAppDto.recipientPhone, message: sendWhatsAppDto.message }],
+    );
+  }
+
+  @Get('notifications/:approvalRequestId')
+  @ApiOperation({ summary: 'Get notification tracks for approval request' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification tracks retrieved successfully.',
+    type: [NotificationTrack],
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  getNotificationTracks(@Param('approvalRequestId') approvalRequestId: string) {
+    return this.approvalRequestService.getNotificationTracks(approvalRequestId);
+  }
+
+  @Patch('notifications/retry/:notificationTrackId')
+  @ApiOperation({ summary: 'Retry failed notification' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification retry initiated successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  retryFailedNotification(@Param('notificationTrackId') notificationTrackId: string) {
+    return this.approvalRequestService.retryFailedNotification(notificationTrackId);
+  }
+
+  @Get('notifications/check-status/:messageId')
+  @ApiOperation({ summary: 'Check delivery status of a notification' })
+  @ApiResponse({
+    status: 200,
+    description: 'Delivery status checked successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  checkDeliveryStatus(@Param('messageId') messageId: string) {
+    return this.approvalRequestService.checkDeliveryStatus(messageId);
   }
 }

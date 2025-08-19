@@ -10,6 +10,7 @@ import {
 import { Role } from './role.entity';
 import { BaseEntity } from './base.entity';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Entity('users')
 @Index(['username'], { unique: true })
@@ -23,7 +24,7 @@ export class User extends BaseEntity {
 
   @Column({ unique: true, length: 100, nullable: true })
   phone: string;
-
+  
   @Column({ unique: true, length: 100, nullable: true })
   pin: string;
 
@@ -52,15 +53,64 @@ export class User extends BaseEntity {
     this.pin = await bcrypt.hash(this.pin, 12);
   }
 
-  @BeforeInsert()
-  @BeforeUpdate()
-  async hashPhone() {
-    this.phone = await bcrypt.hash(this.phone, 12);
-  }
+  private static readonly ENCRYPTION_KEY = 'your-secret-key-32-chars-long!!'; // In production, use environment variable
+  private static readonly ALGORITHM = 'aes-256-cbc';
 
   @BeforeInsert()
   @BeforeUpdate()
   async hashEmail() {
-    this.email = await bcrypt.hash(this.email, 12);
+    if (this.email && !this.email.startsWith('$2b$')) {
+      this.email = this.encrypt(this.email);
+    }
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPhone() {
+    if (this.phone && !this.phone.startsWith('$2b$')) {
+      this.phone = this.encrypt(this.phone);
+    }
+  }
+
+  getUnhashedEmail(): string | null {
+    if (!this.email) return null;
+    try {
+      return this.decrypt(this.email);
+    } catch {
+      return this.email;
+    }
+  }
+
+  getUnhashedPhone(): string | null {
+    if (!this.phone) return null;
+    try {
+      return this.decrypt(this.phone);
+    } catch {
+      return this.phone;
+    }
+  }
+
+  private encrypt(text: string): string {
+    const iv = crypto.randomBytes(16);
+    const key = crypto.scryptSync(User.ENCRYPTION_KEY, 'salt', 32);
+    const cipher = crypto.createCipheriv(User.ALGORITHM, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
+  }
+
+  private decrypt(encryptedText: string): string {
+    const textParts = encryptedText.split(':');
+    const ivHex = textParts.shift();
+    if (!ivHex) {
+      throw new Error('Invalid encrypted text format');
+    }
+    const iv = Buffer.from(ivHex, 'hex');
+    const encryptedData = textParts.join(':');
+    const key = crypto.scryptSync(User.ENCRYPTION_KEY, 'salt', 32);
+    const decipher = crypto.createDecipheriv(User.ALGORITHM, key, iv);
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
   }
 }

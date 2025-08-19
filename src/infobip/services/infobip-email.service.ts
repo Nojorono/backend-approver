@@ -345,6 +345,33 @@ export class InfobipEmailService {
     }
   }
 
+  async getEmailMessageLogs(
+    messageId: string,
+    authMethod: AuthMethod = 'oauth2',
+  ): Promise<any> {
+    try {
+      this.logger.log(`Fetching email message logs for message ID: ${messageId}`);
+
+      const client = await this.authService.getAuthenticatedClient(authMethod);
+
+      const response = await client.get(
+        `${INFOBIP_ENDPOINTS.EMAIL.MESSAGE_LOGS}?messageId=${messageId}`,
+      );
+
+      this.logger.log(`Retrieved email message logs for message ID: ${messageId}`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch email message logs for message ID ${messageId}:`,
+        error,
+      );
+      throw new BadRequestException(
+        error.response?.data?.requestError?.serviceException?.text ||
+          'Failed to fetch email message logs',
+      );
+    }
+  }
+
   async getEmailTemplates(authMethod: AuthMethod = 'oauth2'): Promise<any> {
     try {
       this.logger.log('Fetching available email templates');
