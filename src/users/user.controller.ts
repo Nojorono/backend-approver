@@ -95,7 +95,16 @@ export class UserController {
       type: 'object',
       properties: {
         success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'PIN verification successful' }
+        message: { type: 'string', example: 'PIN verification successful' },
+        token: { type: 'string', description: 'JWT token for authentication' },
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'User ID' },
+            username: { type: 'string', description: 'Username' },
+            role: { type: 'object', description: 'User role information' }
+          }
+        }
       }
     }
   })
@@ -103,6 +112,31 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   verifyPin(@Param('id') id: string, @Body() verifyPinDto: VerifyPinDto) {
     return this.userService.verifyPin(id, verifyPinDto);
+  }
+
+  @Public()
+  @Post('verify-token')
+  @ApiOperation({ summary: 'Verify JWT token validity' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Token verification result.',
+    schema: {
+      type: 'object',
+      properties: {
+        valid: { type: 'boolean', description: 'Whether the token is valid' },
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', description: 'User ID' },
+            username: { type: 'string', description: 'Username' },
+            role: { type: 'object', description: 'User role information' }
+          }
+        }
+      }
+    }
+  })
+  verifyToken(@Body() body: { token: string }) {
+    return this.userService.verifyToken(body.token);
   }
 
   @Post('set-pin/:id')

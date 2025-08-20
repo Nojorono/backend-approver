@@ -10,11 +10,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { VerifyPinDto } from './dto/verify-pin.dto';
 import { SetPinDto } from './dto/set-pin.dto';
 import { User } from '../core/domain/entities/user.entity';
+import { AuthService } from '../infrastructure/services/auth.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly repository: UserRepository) {}
+  constructor(
+    private readonly repository: UserRepository,
+    private readonly authService: AuthService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.repository.findByUsername(
@@ -68,7 +72,16 @@ export class UserService {
     await this.repository.remove(id);
   }
 
-  async verifyPin(id: string, verifyPinDto: VerifyPinDto): Promise<{ success: boolean; message: string }> {
+  async verifyPin(id: string, verifyPinDto: VerifyPinDto): Promise<{ 
+    success: boolean; 
+    message: string; 
+    token: string;
+    user: {
+      id: string;
+      username: string;
+      role: any;
+    };
+  }> {
     const user = await this.findOne(id);
     
     if (!user.pin) {
@@ -81,9 +94,17 @@ export class UserService {
       throw new BadRequestException('Invalid PIN code');
     }
 
+    const token = await this.authService.generateToken(user);
+
     return {
       success: true,
       message: 'PIN verification successful',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
     };
   }
 
@@ -98,5 +119,34 @@ export class UserService {
       success: true,
       message: 'PIN has been set successfully',
     };
+  }
+
+  async verifyToken(token: string): Promise<{ 
+    valid: boolean; 
+    user?: {
+      id: string;
+      username: string;
+      role: any;
+    };
+  }> {
+    try {
+      const payload = await this.authService.verifyToken(token);
+      const user = await this.findOne(payload.sub);
+      
+      if (!user) {
+        return { valid: false };
+      }
+
+      return {
+        valid: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      return { valid: false };
+    }
   }
 }
