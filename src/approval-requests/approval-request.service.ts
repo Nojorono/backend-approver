@@ -24,19 +24,86 @@ export class ApprovalRequestService {
     const approvalRequest = await this.repository.create(createApprovalRequestDto);
     
     if (approvalRequest.approverIds && approvalRequest.approverIds.length > 0) {
-      try {
-        await this.sendNotificationsToApprovers(
-          approvalRequest.id,
-          `New Approval Request: ${approvalRequest.subject || approvalRequest.code}`,
-          undefined,
-          undefined
-        );
-      } catch (error) {
-        console.error('Failed to send notifications to approvers:', error);
-      }
+      this.sendNotificationsInBackground(
+        approvalRequest.id,
+        `New Approval Request: ${approvalRequest.subject || approvalRequest.code}`,
+        undefined,
+        undefined
+      );
     }
     
     return approvalRequest;
+  }
+
+  private sendNotificationsInBackground(
+    approvalRequestId: string,
+    subject?: string,
+    emailContent?: string,
+    whatsappContent?: string,
+  ): void {
+    const startTime = Date.now();
+    console.log(`Starting background notification process for approval request: ${approvalRequestId}`);
+    
+    setImmediate(async () => {
+      try {
+        await this.sendNotificationsToApprovers(
+          approvalRequestId,
+          subject,
+          emailContent,
+          whatsappContent
+        );
+        const duration = Date.now() - startTime;
+        console.log(`✅ Background notifications completed successfully for approval request: ${approvalRequestId} (took ${duration}ms)`);
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        console.error(`❌ Background notification failed for approval request ${approvalRequestId} (took ${duration}ms):`, error);
+      }
+    });
+  }
+
+  async getNotificationStatus(approvalRequestId: string): Promise<{
+    approvalRequestId: string;
+    notificationTracks: NotificationTrack[];
+    totalNotifications: number;
+    sentCount: number;
+    failedCount: number;
+    pendingCount: number;
+  }> {
+    const notificationTracks = await this.notificationService.getNotificationTracksByApprovalRequest(approvalRequestId);
+    
+    const totalNotifications = notificationTracks.length;
+    const sentCount = notificationTracks.filter(track => track.status === 'sent' || track.status === 'delivered').length;
+    const failedCount = notificationTracks.filter(track => track.status === 'failed' || track.status === 'rejected').length;
+    const pendingCount = notificationTracks.filter(track => track.status === 'pending').length;
+
+    return {
+      approvalRequestId,
+      notificationTracks,
+      totalNotifications,
+      sentCount,
+      failedCount,
+      pendingCount,
+    };
+  }
+
+  async triggerNotifications(approvalRequestId: string): Promise<{ success: boolean; message: string }> {
+    const approvalRequest = await this.findOne(approvalRequestId);
+    
+    if (!approvalRequest.approverIds || approvalRequest.approverIds.length === 0) {
+      throw new BadRequestException('No approvers assigned to this approval request');
+    }
+
+    this.sendNotificationsInBackground(
+      approvalRequestId,
+      `Approval Request Reminder: ${approvalRequest.subject || approvalRequest.code}`,
+      undefined,
+      undefined
+    );
+
+    return {
+      success: true,
+      message: 'Notifications triggered successfully in background'
+    };
   }
 
   async findAll(): Promise<ApprovalRequest[]> {

@@ -252,6 +252,47 @@ export class ApprovalRequestController {
     return this.approvalRequestService.getNotificationTracks(approvalRequestId);
   }
 
+  @Get('notifications/:approvalRequestId/status')
+  @ApiOperation({ summary: 'Get notification status summary for approval request' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification status retrieved successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        approvalRequestId: { type: 'string' },
+        notificationTracks: { type: 'array' },
+        totalNotifications: { type: 'number' },
+        sentCount: { type: 'number' },
+        failedCount: { type: 'number' },
+        pendingCount: { type: 'number' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  getNotificationStatus(@Param('approvalRequestId') approvalRequestId: string) {
+    return this.approvalRequestService.getNotificationStatus(approvalRequestId);
+  }
+
+  @Post('notifications/:approvalRequestId/trigger')
+  @ApiOperation({ summary: 'Manually trigger notifications for approval request' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications triggered successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  @ApiResponse({ status: 400, description: 'No approvers assigned to approval request.' })
+  triggerNotifications(@Param('approvalRequestId') approvalRequestId: string) {
+    return this.approvalRequestService.triggerNotifications(approvalRequestId);
+  }
+
   @Get('notifications/check-status/:notificationTrackId')
   @ApiOperation({ summary: 'Check delivery status of a notification by notification track ID' })
   @ApiResponse({
