@@ -29,6 +29,14 @@ export class ApprovalProcessRepository {
     return entity;
   }
 
+  async findByApproverId(approverId: string): Promise<ApprovalProcess | null> {
+    const entity = await this.repository.findOne({ where: { approverId }, withDeleted: false });
+    if (!entity) {
+      return null;
+    }
+    return entity;
+  }
+
   async update(id: string, updateDto: UpdateApprovalProcessDto): Promise<ApprovalProcess | null> {
     const entity = await this.findOne(id);
     if (!entity) {
@@ -72,6 +80,17 @@ export class ApprovalProcessRepository {
       throw new NotFoundException('Approval process not found');
     }
     await this.repository.delete(id);
+  }
+
+  async findByApprovalRequestIdAndApproverId(approvalRequestId: string, approverId: string): Promise<ApprovalProcess | null> {
+    const entity = await this.repository.findOne({ 
+      where: { approvalRequestId, approverId }, 
+      withDeleted: false 
+    });
+    if (!entity) {
+      return null;
+    }
+    return entity;
   }
 
   async findByApprovalRequestId(approvalRequestId: string): Promise<ApprovalProcess | null> {

@@ -34,6 +34,19 @@ export class ApprovalRequestService {
     return approvalRequest;
   }
 
+  async findPendingByApproverId(approverId: string): Promise<ApprovalRequest[]> {
+    const checkApprovalRequest = await this.repository.findPendingByApproverId(approverId);
+    if (checkApprovalRequest.length > 0) {
+      for (const approvalRequest of checkApprovalRequest) {
+        const checkApproverProcess = await this.approvalProcessRepository.findByApprovalRequestIdAndApproverId(approvalRequest.id, approverId);
+        if (!checkApproverProcess) {
+          return [approvalRequest];
+        }
+      }
+    }    
+    return [];
+  }
+
   private sendNotificationsInBackground(
     approvalRequestId: string,
     subject?: string,

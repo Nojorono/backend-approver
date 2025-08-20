@@ -57,6 +57,13 @@ export class ApprovalRequestController {
     return this.approvalRequestService.findAll();
   }
 
+  @Get('pending-by-approver/:approverId')
+  @ApiOperation({ summary: 'Get all pending Approval Requests by approver ID' })
+  @ApiResponse({ status: 200, description: 'Return all pending Approval Requests by approver ID.', type: [ApprovalRequest] })
+  findPendingByApproverId(@Param('approverId') approverId: string) {
+    return this.approvalRequestService.findPendingByApproverId(approverId);
+  }
+
   @Get('with-relations')
   @ApiOperation({ summary: 'Get all Approval Requests with notification tracks and approval process relations' })
   @ApiResponse({ 

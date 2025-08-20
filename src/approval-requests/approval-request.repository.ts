@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ApprovalRequest } from '../core/domain/entities/approval-request.entity';
 import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { UpdateApprovalRequestDto } from './dto/update-approval-request.dto';
@@ -26,6 +26,13 @@ export class ApprovalRequestRepository {
   async findByCreatedBy(createdBy: string): Promise<ApprovalRequest[]> {
     return await this.repository.find({
       where: { createdBy: createdBy },
+      withDeleted: false,
+    });
+  }
+
+  async findPendingByApproverId(approverId: string): Promise<ApprovalRequest[]> {
+    return await this.repository.find({
+      where: { approverIds: In([approverId]), status: 'pending' },
       withDeleted: false,
     });
   }
