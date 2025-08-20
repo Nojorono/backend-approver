@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalProcessRepository } from './approval-process.repository';
 import { CreateApprovalProcessDto } from './dto/create-approval-process.dto';
-import { UpdateApprovalProcessDto } from './dto/update-approval-process.dto';
 import { ApprovalProcess } from '../core/domain/entities/approval-process.entity';
+import { UpdateApprovalProcessDto } from './dto/update-approval-process.dto';
 
 @Injectable()
 export class ApprovalProcessService {
