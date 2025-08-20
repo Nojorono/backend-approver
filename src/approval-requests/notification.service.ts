@@ -12,6 +12,7 @@ import { WhatsAppTextMessageDto } from '../infobip/dto/whatsapp.dto';
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
+  private readonly maxRetries = parseInt(process.env.MAX_NOTIFICATION_RETRIES || '3');
 
   constructor(
     @InjectRepository(NotificationTrack)
@@ -583,6 +584,13 @@ export class NotificationService {
     });
   }
 
+  async getNotificationTrackById(id: string): Promise<NotificationTrack | null> {
+    return await this.notificationTrackRepository.findOne({
+      where: { id },
+      relations: ['approvalRequest'],
+    });
+  }
+
   async retryFailedNotifications(
     notificationTrackId: string,
   ): Promise<NotificationTrack> {
@@ -650,6 +658,250 @@ export class NotificationService {
 
       throw error;
     }
+  }
+
+  async retryResendByMessageId(messageId: string): Promise<NotificationTrack> {
+    const notificationTrack = await this.notificationTrackRepository.findOne({
+      where: { messageId },
+    });
+
+    if (!notificationTrack) {
+      throw new Error(`Notification track with messageId ${messageId} not found`);
+    }
+
+    if (notificationTrack.retryCount && notificationTrack.retryCount >= this.maxRetries) {
+      throw new Error(`Maximum retry attempts (${this.maxRetries}) exceeded for this notification`);
+    }
+
+    try {
+      if (notificationTrack.type === NotificationType.EMAIL) {
+        const emailData: SendEmailDto = {
+          to: [{ email: notificationTrack.recipient }],
+          subject: notificationTrack.subject,
+          html: notificationTrack.content,
+        };
+
+        const response = await this.infobipEmailService.sendEmail(emailData);
+        const status = this.mapInfobipStatusToNotificationStatus(
+          response.messages[0].status.groupId,
+        );
+
+        await this.notificationTrackRepository.update(notificationTrack.id, {
+          status,
+          sentAt: new Date(),
+          retryCount: (notificationTrack.retryCount || 0) + 1,
+          errorMessage: undefined,
+        });
+
+        this.logger.log(`Email resent successfully for messageId ${messageId} to ${notificationTrack.recipient}`);
+      } else if (notificationTrack.type === NotificationType.WHATSAPP) {
+        const whatsappData: WhatsAppTextMessageDto = {
+          to: notificationTrack.recipient,
+          text: notificationTrack.content,
+        };
+
+        const response = await this.infobipWhatsAppService.sendTextMessage(whatsappData);
+        const status = this.mapInfobipStatusToNotificationStatus(response.status.groupId);
+
+        await this.notificationTrackRepository.update(notificationTrack.id, {
+          status,
+          sentAt: new Date(),
+          retryCount: (notificationTrack.retryCount || 0) + 1,
+          errorMessage: undefined,
+        });
+
+        this.logger.log(`WhatsApp message resent successfully for messageId ${messageId} to ${notificationTrack.recipient}`);
+      }
+
+      const result = await this.notificationTrackRepository.findOne({
+        where: { id: notificationTrack.id },
+      });
+
+      if (!result) {
+        throw new Error('Failed to retrieve notification track after retry resend');
+      }
+
+      return result;
+    } catch (error) {
+      await this.notificationTrackRepository.update(notificationTrack.id, {
+        status: NotificationStatus.FAILED,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error during retry',
+        retryCount: (notificationTrack.retryCount || 0) + 1,
+      });
+
+      this.logger.error(`Failed to retry resend notification for messageId ${messageId}:`, error);
+      throw error;
+    }
+  }
+
+  async retryResendByNotificationTrackId(notificationTrackId: string): Promise<NotificationTrack> {
+    const notificationTrack = await this.notificationTrackRepository.findOne({
+      where: { id: notificationTrackId },
+    });
+
+    if (!notificationTrack) {
+      throw new Error(`Notification track with ID ${notificationTrackId} not found`);
+    }
+
+    if (notificationTrack.retryCount && notificationTrack.retryCount >= this.maxRetries) {
+      throw new Error(`Maximum retry attempts (${this.maxRetries}) exceeded for this notification`);
+    }
+
+    try {
+      if (notificationTrack.type === NotificationType.EMAIL) {
+        const emailData: SendEmailDto = {
+          to: [{ email: notificationTrack.recipient }],
+          subject: notificationTrack.subject,
+          html: notificationTrack.content,
+        };
+
+        const response = await this.infobipEmailService.sendEmail(emailData);
+        const status = this.mapInfobipStatusToNotificationStatus(
+          response.messages[0].status.groupId,
+        );
+
+        await this.notificationTrackRepository.update(notificationTrack.id, {
+          status,
+          sentAt: new Date(),
+          retryCount: (notificationTrack.retryCount || 0) + 1,
+          errorMessage: undefined,
+        });
+
+        this.logger.log(`Email resent successfully for notification track ID ${notificationTrackId} to ${notificationTrack.recipient}`);
+      } else if (notificationTrack.type === NotificationType.WHATSAPP) {
+        const whatsappData: WhatsAppTextMessageDto = {
+          to: notificationTrack.recipient,
+          text: notificationTrack.content,
+        };
+
+        const response = await this.infobipWhatsAppService.sendTextMessage(whatsappData);
+        const status = this.mapInfobipStatusToNotificationStatus(response.status.groupId);
+
+        await this.notificationTrackRepository.update(notificationTrack.id, {
+          status,
+          sentAt: new Date(),
+          retryCount: (notificationTrack.retryCount || 0) + 1,
+          errorMessage: undefined,
+        });
+
+        this.logger.log(`WhatsApp message resent successfully for notification track ID ${notificationTrackId} to ${notificationTrack.recipient}`);
+      }
+
+      const result = await this.notificationTrackRepository.findOne({
+        where: { id: notificationTrack.id },
+      });
+
+      if (!result) {
+        throw new Error('Failed to retrieve notification track after retry resend');
+      }
+
+      return result;
+    } catch (error) {
+      await this.notificationTrackRepository.update(notificationTrack.id, {
+        status: NotificationStatus.FAILED,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error during retry',
+        retryCount: (notificationTrack.retryCount || 0) + 1,
+      });
+
+      this.logger.error(`Failed to retry resend notification for notification track ID ${notificationTrackId}:`, error);
+      throw error;
+    }
+  }
+
+  async checkRetryEligibility(messageId: string): Promise<{
+    canRetry: boolean;
+    reason: string;
+    retryCount: number;
+    maxRetries: number;
+    status: string;
+    type: string;
+  }> {
+    const notificationTrack = await this.notificationTrackRepository.findOne({
+      where: { messageId },
+    });
+
+    if (!notificationTrack) {
+      throw new Error(`Notification track with messageId ${messageId} not found`);
+    }
+
+    const currentRetryCount = notificationTrack.retryCount || 0;
+    
+    let canRetry = false;
+    let reason = '';
+
+    if (currentRetryCount >= this.maxRetries) {
+      reason = `Maximum retry attempts (${this.maxRetries}) exceeded`;
+    } else if (notificationTrack.status === NotificationStatus.DELIVERED) {
+      reason = 'Notification already delivered successfully';
+    } else if (notificationTrack.status === NotificationStatus.SENT) {
+      canRetry = true;
+      reason = 'Notification sent but can be retried if needed';
+    } else if (notificationTrack.status === NotificationStatus.FAILED || notificationTrack.status === NotificationStatus.REJECTED) {
+      canRetry = true;
+      reason = 'Notification failed and can be retried';
+    } else if (notificationTrack.status === NotificationStatus.PENDING) {
+      canRetry = true;
+      reason = 'Notification is pending and can be retried';
+    } else {
+      reason = 'Unknown status, cannot determine retry eligibility';
+    }
+
+    return {
+      canRetry,
+      reason,
+      retryCount: currentRetryCount,
+      maxRetries: this.maxRetries,
+      status: notificationTrack.status,
+      type: notificationTrack.type,
+    };
+  }
+
+  async checkRetryEligibilityByNotificationTrackId(notificationTrackId: string): Promise<{
+    canRetry: boolean;
+    reason: string;
+    retryCount: number;
+    maxRetries: number;
+    status: string;
+    type: string;
+  }> {
+    const notificationTrack = await this.notificationTrackRepository.findOne({
+      where: { id: notificationTrackId },
+    });
+
+    if (!notificationTrack) {
+      throw new Error(`Notification track with ID ${notificationTrackId} not found`);
+    }
+
+    const currentRetryCount = notificationTrack.retryCount || 0;
+    
+    let canRetry = false;
+    let reason = '';
+
+    if (currentRetryCount >= this.maxRetries) {
+      reason = `Maximum retry attempts (${this.maxRetries}) exceeded`;
+    } else if (notificationTrack.status === NotificationStatus.DELIVERED) {
+      reason = 'Notification already delivered successfully';
+    } else if (notificationTrack.status === NotificationStatus.SENT) {
+      canRetry = true;
+      reason = 'Notification sent but can be retried if needed';
+    } else if (notificationTrack.status === NotificationStatus.FAILED || notificationTrack.status === NotificationStatus.REJECTED) {
+      canRetry = true;
+      reason = 'Notification failed and can be retried';
+    } else if (notificationTrack.status === NotificationStatus.PENDING) {
+      canRetry = true;
+      reason = 'Notification is pending and can be retried';
+    } else {
+      reason = 'Unknown status, cannot determine retry eligibility';
+    }
+
+    return {
+      canRetry,
+      reason,
+      retryCount: currentRetryCount,
+      maxRetries: this.maxRetries,
+      status: notificationTrack.status,
+      type: notificationTrack.type,
+    };
   }
 
   private mapInfobipStatusToNotificationStatus(groupId: number): NotificationStatus {

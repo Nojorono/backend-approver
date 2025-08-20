@@ -67,11 +67,19 @@ export class ApprovalProcessRepository {
   }
 
   async hardDelete(id: string): Promise<void> {
-    const entity = await this.findWithDeleted(id);
+    const entity = await this.findOne(id);
     if (!entity) {
       throw new NotFoundException('Approval process not found');
     }
     await this.repository.delete(id);
+  }
+
+  async findByApprovalRequestId(approvalRequestId: string): Promise<ApprovalProcess | null> {
+    const entity = await this.repository.findOne({ 
+      where: { approvalRequestId }, 
+      withDeleted: false 
+    });
+    return entity;
   }
 }
 

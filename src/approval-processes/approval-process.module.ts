@@ -9,7 +9,7 @@ import { ApprovalProcessRepository } from './approval-process.repository';
   imports: [TypeOrmModule.forFeature([ApprovalProcess])],
   controllers: [ApprovalProcessController],
   providers: [ApprovalProcessService, ApprovalProcessRepository],
-  exports: [ApprovalProcessService],
+  exports: [ApprovalProcessService, ApprovalProcessRepository],
 })
 export class ApprovalProcessModule {}
 

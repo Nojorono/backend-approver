@@ -22,7 +22,9 @@ import { ApprovalRequest } from '../core/domain/entities/approval-request.entity
 import { 
   SendNotificationDto, 
   SendSingleEmailDto, 
-  SendSingleWhatsAppDto 
+  SendSingleWhatsAppDto,
+  RetryResendByNotificationTrackIdDto,
+  BulkRetryResendByNotificationTrackIdsDto
 } from './dto/send-notification.dto';
 import { SendApproverNotificationDto } from './dto/send-approver-notification.dto';
 import { NotificationTrack } from '../core/domain/entities/notification-track.entity';
@@ -55,6 +57,48 @@ export class ApprovalRequestController {
     return this.approvalRequestService.findAll();
   }
 
+  @Get('with-relations')
+  @ApiOperation({ summary: 'Get all Approval Requests with notification tracks and approval process relations' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Return all Approval Requests with relations.', 
+    schema: {
+      type: 'object',
+      properties: {
+        data: { 
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              approvalRequest: { type: 'object' },
+              notificationTracks: { type: 'array' },
+              approvalProcess: { type: 'object' }
+            }
+          }
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            total: { type: 'number' },
+            totalPages: { type: 'number' }
+          }
+        }
+      }
+    }
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10, max: 100)' })
+  @ApiQuery({ name: 'status', required: false, description: 'Filter by status' })
+  findAllWithRelations(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('status') status?: string
+  ) {
+    return this.approvalRequestService.findAllWithRelations(page, limit, status);
+  }
+
   @Get('code/:code')
   @ApiOperation({ summary: 'Get an Approval Request by code' })
   @ApiResponse({ status: 200, description: 'Return the Approval Request.', type: ApprovalRequest })
@@ -70,6 +114,8 @@ export class ApprovalRequestController {
   findOne(@Param('id') id: string) {
     return this.approvalRequestService.findOne(id);
   }
+
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an Approval Request' })
@@ -206,27 +252,97 @@ export class ApprovalRequestController {
     return this.approvalRequestService.getNotificationTracks(approvalRequestId);
   }
 
-  @Patch('notifications/retry/:notificationTrackId')
-  @ApiOperation({ summary: 'Retry failed notification' })
-  @ApiResponse({
-    status: 200,
-    description: 'Notification retry initiated successfully.',
-    type: NotificationTrack,
-  })
-  @ApiResponse({ status: 404, description: 'Notification track not found.' })
-  retryFailedNotification(@Param('notificationTrackId') notificationTrackId: string) {
-    return this.approvalRequestService.retryFailedNotification(notificationTrackId);
-  }
-
-  @Get('notifications/check-status/:messageId')
-  @ApiOperation({ summary: 'Check delivery status of a notification' })
+  @Get('notifications/check-status/:notificationTrackId')
+  @ApiOperation({ summary: 'Check delivery status of a notification by notification track ID' })
   @ApiResponse({
     status: 200,
     description: 'Delivery status checked successfully.',
     type: NotificationTrack,
   })
   @ApiResponse({ status: 404, description: 'Notification track not found.' })
-  checkDeliveryStatus(@Param('messageId') messageId: string) {
-    return this.approvalRequestService.checkDeliveryStatus(messageId);
+  checkDeliveryStatusByNotificationTrackId(@Param('notificationTrackId') notificationTrackId: string) {
+    return this.approvalRequestService.checkDeliveryStatusByNotificationTrackId(notificationTrackId);
+  }
+
+  @Get('notifications/check-retry-eligibility/:messageId')
+  @ApiOperation({ summary: 'Check if a notification can be retried' })
+  @ApiResponse({
+    status: 200,
+    description: 'Retry eligibility checked successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        canRetry: { type: 'boolean' },
+        reason: { type: 'string' },
+        retryCount: { type: 'number' },
+        maxRetries: { type: 'number' },
+        status: { type: 'string' },
+        type: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  checkRetryEligibility(@Param('messageId') messageId: string) {
+    return this.approvalRequestService.checkRetryEligibility(messageId);
+  }
+
+  @Get('notifications/check-retry-eligibility-by-track/:notificationTrackId')
+  @ApiOperation({ summary: 'Check if a notification can be retried by notification track ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Retry eligibility checked successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        canRetry: { type: 'boolean' },
+        reason: { type: 'string' },
+        retryCount: { type: 'number' },
+        maxRetries: { type: 'number' },
+        status: { type: 'string' },
+        type: { type: 'string' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  checkRetryEligibilityByNotificationTrackId(@Param('notificationTrackId') notificationTrackId: string) {
+    return this.approvalRequestService.checkRetryEligibilityByNotificationTrackId(notificationTrackId);
+  }
+
+  @Post('notifications/retry-resend')
+  @ApiOperation({ summary: 'Retry resend notification by notification track ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification retry resend initiated successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  @ApiResponse({ status: 400, description: 'Notification cannot be retried.' })
+  retryResendByNotificationTrackId(@Body() retryResendDto: RetryResendByNotificationTrackIdDto) {
+    return this.approvalRequestService.retryResendByNotificationTrackId(retryResendDto.notificationTrackId);
+  }
+
+  @Patch('notifications/retry/:notificationTrackId')
+  @ApiOperation({ summary: 'Retry resend notification by notification track ID (direct)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification retry resend initiated successfully.',
+    type: NotificationTrack,
+  })
+  @ApiResponse({ status: 404, description: 'Notification track not found.' })
+  @ApiResponse({ status: 400, description: 'Notification cannot be retried.' })
+  retryResendByNotificationTrackIdDirect(@Param('notificationTrackId') notificationTrackId: string) {
+    return this.approvalRequestService.retryResendByNotificationTrackId(notificationTrackId);
+  }
+
+  @Post('notifications/bulk-retry-resend')
+  @ApiOperation({ summary: 'Bulk retry resend notifications by notification track IDs' })
+  @ApiResponse({
+    status: 200,
+    description: 'Bulk notification retry resend initiated successfully.',
+    type: [NotificationTrack],
+  })
+  @ApiResponse({ status: 400, description: 'Invalid notification track IDs provided.' })
+  bulkRetryResend(@Body() bulkRetryDto: BulkRetryResendByNotificationTrackIdsDto) {
+    return this.approvalRequestService.bulkRetryResendByNotificationTrackIds(bulkRetryDto.notificationTrackIds);
   }
 }

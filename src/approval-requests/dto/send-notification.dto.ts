@@ -77,3 +77,16 @@ export class SendSingleWhatsAppDto {
   @IsString()
   message: string;
 }
+
+export class RetryResendByNotificationTrackIdDto {
+  @ApiProperty({ required: true, description: 'Notification track ID to retry resend' })
+  @IsString()
+  notificationTrackId: string;
+}
+
+export class BulkRetryResendByNotificationTrackIdsDto {
+  @ApiProperty({ required: true, description: 'Array of notification track IDs to retry resend', type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  notificationTrackIds: string[];
+}
