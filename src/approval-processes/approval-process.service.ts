@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalProcessRepository } from './approval-process.repository';
 import { CreateApprovalProcessDto } from './dto/create-approval-process.dto';
 import { ApprovalProcess } from '../core/domain/entities/approval-process.entity';
@@ -9,6 +9,10 @@ export class ApprovalProcessService {
   constructor(private readonly repository: ApprovalProcessRepository) {}
 
   async create(createDto: CreateApprovalProcessDto): Promise<ApprovalProcess> {
+    const checkApprovalProcess = await this.repository.findByApprovalRequestIdAndApproverId(createDto.approvalRequestId, createDto.approverId);
+    if (checkApprovalProcess) {
+      throw new BadRequestException('Approval process with this approval request and approver already exists');
+    } 
     return await this.repository.create(createDto);
   }
 
