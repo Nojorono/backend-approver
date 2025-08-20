@@ -3,11 +3,14 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ApprovalRequestRepository } from './approval-request.repository';
 import { CreateApprovalRequestDto } from './dto/create-approval-request.dto';
 import { UpdateApprovalRequestDto } from './dto/update-approval-request.dto';
 import { ApprovalRequest } from '../core/domain/entities/approval-request.entity';
 import { NotificationTrack } from '../core/domain/entities/notification-track.entity';
+import { User } from '../core/domain/entities/user.entity';
 import { NotificationService } from './notification.service';
 import { ApprovalProcessRepository } from '../approval-processes/approval-process.repository';
 
@@ -17,6 +20,8 @@ export class ApprovalRequestService {
     private readonly repository: ApprovalRequestRepository,
     private readonly notificationService: NotificationService,
     private readonly approvalProcessRepository: ApprovalProcessRepository,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createApprovalRequestDto: CreateApprovalRequestDto): Promise<ApprovalRequest> {
@@ -31,7 +36,7 @@ export class ApprovalRequestService {
       );
     }
 
-    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/approval-process/${approvalRequest.id}?approverId=`;
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/approval-process/${approvalRequest.id}?$1?approverId=`;
     approvalRequest.frontendUrl = frontendUrl;
     await this.repository.update(approvalRequest.id, { frontendUrl });
     return approvalRequest;
@@ -132,7 +137,7 @@ export class ApprovalRequestService {
     createdBy?: string
   ): Promise<{
     data: Array<{
-      approvalRequest: ApprovalRequest;
+      approvalRequest: any;
       notificationTracks: NotificationTrack[];
       approvalProcess: any;
     }>;
@@ -167,9 +172,10 @@ export class ApprovalRequestService {
       approvalRequests.map(async (approvalRequest) => {
         const notificationTracks = await this.notificationService.getNotificationTracksByApprovalRequest(approvalRequest.id);
         const approvalProcess = await this.approvalProcessRepository.findByApprovalRequestId(approvalRequest.id);
+        const approvalRequestView = await this.buildApprovalRequestView(approvalRequest);
 
         return {
-          approvalRequest,
+          approvalRequest: approvalRequestView,
           notificationTracks,
           approvalProcess
         };
@@ -187,6 +193,31 @@ export class ApprovalRequestService {
         totalPages
       }
     };
+  }
+
+  private async buildApprovalRequestView(approvalRequest: ApprovalRequest): Promise<any> {
+    let approverUsers: Array<{ id: string; username: string; role: any }> = [];
+    if (approvalRequest.approverIds && approvalRequest.approverIds.length > 0) {
+      const users = await this.userRepository.find({
+        where: approvalRequest.approverIds.map((id) => ({ id })),
+        relations: ['role'],
+      });
+      approverUsers = users.map((u) => ({ id: u.id, username: u.username, role: u.role }));
+    }
+
+    const { approvers, ...rest } = approvalRequest as any;
+    return {
+      ...rest,
+      approverIds: approverUsers,
+    };
+  }
+
+  async findOneViewWithApproverObjects(id: string): Promise<any> {
+    const approvalRequest = await this.repository.findOne(id);
+    if (!approvalRequest) {
+      throw new NotFoundException(`Approval request with ID ${id} not found`);
+    }
+    return this.buildApprovalRequestView(approvalRequest);
   }
 
   async findByStatus(status: string): Promise<ApprovalRequest[]> {
@@ -264,7 +295,10 @@ export class ApprovalRequestService {
     emailContent?: string,
     whatsappContent?: string,
   ) {
-    await this.findOne(approvalRequestId);
+    const approvalRequest = await this.findOne(approvalRequestId);
+    if (!approvalRequest) {
+      throw new NotFoundException(`Approval request with ID ${approvalRequestId} not found`);
+    }
     
     return await this.notificationService.sendNotificationsToApprovers(
       approvalRequestId,

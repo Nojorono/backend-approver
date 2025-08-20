@@ -105,8 +105,20 @@ export class NotificationDeliveryStatsDto {
 }
 
 export class RecentActivityDto {
-  @ApiProperty({ description: 'Recent approval requests' })
-  approvalRequests: any[];
+  @ApiProperty({ description: 'Recent approval requests with approvers' })
+  approvalRequests: Array<{
+    id: string;
+    code: string;
+    subject: string;
+    status: string;
+    approverIds: string[];
+    approvers: Array<{
+      id: string;
+      username: string;
+      role: any;
+    }>;
+    createdAt: Date;
+  }>;
 
   @ApiProperty({ description: 'Recent notifications' })
   notifications: any[];

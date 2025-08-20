@@ -295,8 +295,20 @@ export class DashboardService {
       take: 10,
     });
 
+    const approvalRequestsWithApprovers = await Promise.all(
+      recentApprovalRequests.map(async (approvalRequest) => {
+        if (approvalRequest.approverIds && approvalRequest.approverIds.length > 0) {
+          const approvers = await this.userRepository.find({
+            where: approvalRequest.approverIds.map(id => ({ id })),
+            relations: ['role']
+          });
+        }
+        return approvalRequest;
+      })
+    );
+
     return {
-      approvalRequests: recentApprovalRequests,
+      approvalRequests: approvalRequestsWithApprovers,
       notifications: recentNotifications,
       approvalProcesses: recentApprovalProcesses,
     };

@@ -53,6 +53,9 @@ export class NotificationTrack extends BaseEntity {
   recipient: string;
 
   @Column({ nullable: true })
+  recipientId: string;
+
+  @Column({ nullable: true })
   subject: string;
 
   @Column({ type: 'text', nullable: true })

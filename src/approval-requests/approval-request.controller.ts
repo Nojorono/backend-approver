@@ -65,7 +65,7 @@ export class ApprovalRequestController {
   }
 
   @Get('with-relations')
-  @ApiOperation({ summary: 'Get all Approval Requests with notification tracks and approval process relations' })
+  @ApiOperation({ summary: 'Get all Approval Requests with notification tracks, approval process, and approver relations' })
   @ApiResponse({ 
     status: 200, 
     description: 'Return all Approval Requests with relations.', 
@@ -77,7 +77,25 @@ export class ApprovalRequestController {
           items: {
             type: 'object',
             properties: {
-              approvalRequest: { type: 'object' },
+              approvalRequest: { 
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  code: { type: 'string' },
+                  subject: { type: 'string' },
+                  approverIds: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        username: { type: 'string' },
+                        role: { type: 'object' }
+                      }
+                    }
+                  }
+                }
+              },
               notificationTracks: { type: 'array' },
               approvalProcess: { type: 'object' }
             }
@@ -124,6 +142,35 @@ export class ApprovalRequestController {
     return this.approvalRequestService.findOne(id);
   }
 
+  @Get(':id/with-approvers')
+  @ApiOperation({ summary: 'Get an Approval Request by id with approver objects inside approverIds' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Return the Approval Request with approver objects inside approverIds.', 
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        code: { type: 'string' },
+        subject: { type: 'string' },
+        approverIds: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              username: { type: 'string' },
+              role: { type: 'object' }
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Approval Request not found.' })
+  findOneWithApprovers(@Param('id') id: string) {
+    return this.approvalRequestService.findOneViewWithApproverObjects(id);
+  }
 
 
   @Patch(':id')

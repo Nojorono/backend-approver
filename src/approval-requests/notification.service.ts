@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { InfobipEmailService } from '../infobip/services/infobip-email.service';
 import { InfobipWhatsAppService } from '../infobip/services/infobip-whatsapp.service';
 import { NotificationTrack, NotificationType, NotificationStatus } from '../core/domain/entities/notification-track.entity';
@@ -31,6 +31,7 @@ export class NotificationService {
     subject: string,
     content: string,
     metadata?: Record<string, unknown>,
+    recipientId?: string,
   ): Promise<NotificationTrack> {
     let notificationTrack: NotificationTrack | undefined;
 
@@ -48,6 +49,7 @@ export class NotificationService {
         type: NotificationType.EMAIL,
         status: NotificationStatus.PENDING,
         recipient: recipientEmail,
+        recipientId,
         subject,
         content,
         metadata,
@@ -107,6 +109,7 @@ export class NotificationService {
     recipientPhone: string,
     message: string,
     metadata?: Record<string, unknown>,
+    recipientId?: string,
   ): Promise<NotificationTrack> {
     let notificationTrack: NotificationTrack | undefined;
 
@@ -124,6 +127,7 @@ export class NotificationService {
         type: NotificationType.WHATSAPP,
         status: NotificationStatus.PENDING,
         recipient: recipientPhone,
+        recipientId,
         content: message,
         metadata,
         retryCount: 0,
@@ -227,6 +231,8 @@ export class NotificationService {
       where: { id: approvalRequestId },
     });
 
+    console.log(approvalRequest);
+
     if (!approvalRequest) {
       throw new Error(`Approval request with ID ${approvalRequestId} not found`);
     }
@@ -235,7 +241,8 @@ export class NotificationService {
       throw new Error(`No approvers found for approval request ${approvalRequestId}`);
     }
 
-    const approvers = await this.userRepository.findByIds(approvalRequest.approverIds);
+    const approvers = await this.userRepository.find({ where: { id: In(approvalRequest.approverIds) } });
+    console.log("approvers", approvers);
     const emailResults: NotificationTrack[] = [];
     const whatsappResults: NotificationTrack[] = [];
 
@@ -464,12 +471,12 @@ export class NotificationService {
        </html>
      `;
 
-    const defaultWhatsappContent = `Approval Request: ${approvalRequest.code}\nSubject: ${approvalRequest.subject || 'N/A'}\nDescription: ${approvalRequest.description || 'N/A'}\nStatus: ${approvalRequest.status || 'Pending'}\n\nPlease review and approve/reject this request:\n${process.env.FRONTEND_URL || 'http://localhost:3000'}/approval-requests/${approvalRequest.id}`;
+    const defaultWhatsappContent = `Approval Request: ${approvalRequest.code}\nSubject: ${approvalRequest.subject || 'N/A'}\nDescription: ${approvalRequest.description || 'N/A'}\nStatus: ${approvalRequest.status || 'Pending'}\n\nPlease review and approve/reject this request:\n${process.env.FRONTEND_URL || 'http://localhost:5173'}/approval-requests/${approvalRequest.id}`;
 
     for (const approver of approvers) {
         try {
-          const unhashedEmail = approver.getUnhashedEmail();
-          const unhashedPhone = approver.getUnhashedPhone();
+          const unhashedEmail = approver.getUnhashedEmail() ? approver.getUnhashedEmail() : null;
+          const unhashedPhone = approver.getUnhashedPhone() ? approver.getUnhashedPhone() : null;
 
           if (unhashedEmail) {
             const approverEmailContent = emailContent || defaultEmailContent.replace(
@@ -482,6 +489,8 @@ export class NotificationService {
               unhashedEmail,
               subject || defaultSubject,
               approverEmailContent,
+              undefined,
+              approver.id,
             );
             emailResults.push(result);
           }
@@ -496,6 +505,8 @@ export class NotificationService {
               approvalRequestId,
               unhashedPhone,
               approverWhatsappContent,
+              undefined,
+              approver.id,
             );
             whatsappResults.push(result);
           }
