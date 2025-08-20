@@ -91,12 +91,14 @@ export class ApprovalRequestController {
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10, max: 100)' })
   @ApiQuery({ name: 'status', required: false, description: 'Filter by status' })
+  @ApiQuery({ name: 'createdBy', required: false, description: 'find by createdBy' })
   findAllWithRelations(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Query('status') status?: string
+    @Query('status') status?: string,
+    @Query('createdBy') createdBy?: string
   ) {
-    return this.approvalRequestService.findAllWithRelations(page, limit, status);
+    return this.approvalRequestService.findAllWithRelations(page, limit, status, createdBy);
   }
 
   @Get('code/:code')

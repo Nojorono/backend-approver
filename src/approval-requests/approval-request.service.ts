@@ -112,7 +112,8 @@ export class ApprovalRequestService {
   async findAllWithRelations(
     page: number = 1,
     limit: number = 10,
-    status?: string
+    status?: string,
+    createdBy?: string
   ): Promise<{
     data: Array<{
       approvalRequest: ApprovalRequest;
@@ -134,6 +135,10 @@ export class ApprovalRequestService {
 
     if (status) {
       approvalRequests = await this.repository.findByStatus(status);
+      total = approvalRequests.length;
+      approvalRequests = approvalRequests.slice(offset, offset + maxLimit);
+    } else if (createdBy) {
+      approvalRequests = await this.repository.findByCreatedBy(createdBy);
       total = approvalRequests.length;
       approvalRequests = approvalRequests.slice(offset, offset + maxLimit);
     } else {

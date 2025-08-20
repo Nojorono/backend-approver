@@ -23,6 +23,13 @@ export class ApprovalRequestRepository {
     });
   }
 
+  async findByCreatedBy(createdBy: string): Promise<ApprovalRequest[]> {
+    return await this.repository.find({
+      where: { createdBy: createdBy },
+      withDeleted: false,
+    });
+  }
+
   async findByCode(code: string): Promise<ApprovalRequest | null> {
     const approvalRequest = await this.repository.findOne({
       where: { code: code },
