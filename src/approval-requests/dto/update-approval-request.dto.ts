@@ -33,4 +33,9 @@ export class UpdateApprovalRequestDto {
   @IsOptional()
   @IsString()
   createdBy?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  frontendUrl?: string;
 }

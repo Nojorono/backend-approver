@@ -39,6 +39,9 @@ export class ApprovalRequest extends BaseEntity {
   @Column({ nullable: true })
   createdBy: string;
 
+  @Column({ nullable: true })
+  frontendUrl: string;
+
   @BeforeInsert()
   async generateCode() {
     const now = new Date();

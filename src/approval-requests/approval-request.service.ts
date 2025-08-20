@@ -30,7 +30,10 @@ export class ApprovalRequestService {
         undefined
       );
     }
-    
+
+    const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/approval-process/${approvalRequest.id}?approverId=`;
+    approvalRequest.frontendUrl = frontendUrl;
+    await this.repository.update(approvalRequest.id, { frontendUrl });
     return approvalRequest;
   }
 
