@@ -32,6 +32,10 @@ export class UserService {
     return await this.repository.findAll();
   }
 
+  async findByRole(roleName: string): Promise<User[]> {
+    return await this.repository.findByRoleName(roleName);
+  }
+
   async findOne(id: string): Promise<User> {
     const user = await this.repository.findOne(id);
     if (!user) {

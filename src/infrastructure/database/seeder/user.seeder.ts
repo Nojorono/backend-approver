@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
 import { User } from '../../../core/domain/entities/user.entity';
 import { Role } from '../../../core/domain/entities/role.entity';
-import * as bcrypt from 'bcrypt';
 
 export class UserSeeder {
   constructor(private dataSource: DataSource) {}
@@ -14,26 +13,50 @@ export class UserSeeder {
       where: { name: 'admin' },
     });
 
+    const approverRole = await roleRepository.findOne({
+      where: { name: 'approver' },
+    });
+
     if (!adminRole) {
       console.log('Admin role not found. Please run role seeder first.');
       return;
     }
 
-    const saltRounds = 10;
+    if (!approverRole) {
+      console.log('Approver role not found. Please run role seeder first.');
+      return;
+    }
+
     const defaultPassword = 'password123';
 
     const users = [
       {
         username: 'admin',
-        password: await bcrypt.hash(defaultPassword, saltRounds),
+        password: defaultPassword,
+        pin: '1234',
         isActive: true,
         roleId: adminRole.id,
       },
       {
         username: 'testadmin',
-        password: await bcrypt.hash(defaultPassword, saltRounds),
+        password: defaultPassword,
+        pin: '1234',
         isActive: true,
         roleId: adminRole.id,
+      },
+      {
+        username: 'approver1',
+        password: defaultPassword,
+        pin: '1234',
+        isActive: true,
+        roleId: approverRole.id,
+      },
+      {
+        username: 'approver2',
+        password: defaultPassword,
+        pin: '1234',
+        isActive: true,
+        roleId: approverRole.id,
       },
     ];
 
@@ -54,7 +77,9 @@ export class UserSeeder {
     }
 
     console.log('\nDefault login credentials:');
-    console.log('Username: admin, Password: password123');
-    console.log('Username: testadmin, Password: password123');
+    console.log('Username: admin, Password: password123, PIN: 1234');
+    console.log('Username: testadmin, Password: password123, PIN: 1234');
+    console.log('Username: approver1, Password: password123, PIN: 1234');
+    console.log('Username: approver2, Password: password123, PIN: 1234');
   }
 }

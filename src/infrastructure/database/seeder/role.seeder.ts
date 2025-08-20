@@ -13,6 +13,11 @@ export class RoleSeeder {
         description: 'Administrator with full access',
         isActive: true,
       },
+      {
+        name: 'approver',
+        description: 'User with approval permissions',
+        isActive: true,
+      },
     ];
 
     for (const roleData of roles) {

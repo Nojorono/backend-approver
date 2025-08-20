@@ -12,6 +12,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -121,5 +122,13 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   setPin(@Param('id') id: string, @Body() setPinDto: SetPinDto) {
     return this.userService.setPin(id, setPinDto);
+  }
+
+  @Get('role/:roleName')
+  @ApiOperation({ summary: 'Get all users by role name' })
+  @ApiResponse({ status: 200, description: 'Return all users with specified role.', type: [User] })
+  @ApiParam({ name: 'roleName', description: 'Role name (e.g., admin, approver, user)' })
+  findByRole(@Param('roleName') roleName: string) {
+    return this.userService.findByRole(roleName);
   }
 }

@@ -44,13 +44,17 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 12);
+    if (this.password && typeof this.password === 'string' && this.password.length > 0) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
   }
 
   @BeforeInsert()
   @BeforeUpdate()
   async hashPin() {
-    this.pin = await bcrypt.hash(this.pin, 12);
+    if (this.pin && typeof this.pin === 'string' && this.pin.length > 0) {
+      this.pin = await bcrypt.hash(this.pin, 12);
+    }
   }
 
   private static readonly ENCRYPTION_KEY = 'your-secret-key-32-chars-long!!'; // In production, use environment variable
@@ -59,7 +63,7 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashEmail() {
-    if (this.email && !this.email.startsWith('$2b$')) {
+    if (this.email && typeof this.email === 'string' && this.email.length > 0 && !this.email.startsWith('$2b$')) {
       this.email = this.encrypt(this.email);
     }
   }
@@ -67,7 +71,7 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPhone() {
-    if (this.phone && !this.phone.startsWith('$2b$')) {
+    if (this.phone && typeof this.phone === 'string' && this.phone.length > 0 && !this.phone.startsWith('$2b$')) {
       this.phone = this.encrypt(this.phone);
     }
   }
