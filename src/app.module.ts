@@ -12,6 +12,7 @@ import { ApprovalRequestModule } from './approval-requests/approval-request.modu
 import { InfobipModule } from './infobip/infobip.module';
 import { S3Module } from './infrastructure/modules/s3.module';
 import { ApprovalProcessModule } from './approval-processes/approval-process.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ApprovalProcessModule } from './approval-processes/approval-process.mod
     S3Module,
     ApprovalProcessModule,
     InfobipModule,
+    DashboardModule,
   ],
   providers: [
     {
