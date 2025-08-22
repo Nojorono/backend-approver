@@ -41,6 +41,13 @@ export class ApprovalProcessController {
     return this.service.findAll();
   }
 
+  @Get('by-approver/:approverId')
+  @ApiOperation({ summary: 'Get all Approval Processes by approverId' })
+  @ApiResponse({ status: 200, description: 'Return all Approval Processes by approverId.', type: [ApprovalProcess] })
+  findByApproverId(@Param('approverId') approverId: string) {
+    return this.service.findByApproverId(approverId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get an Approval Process by id' })
   @ApiResponse({ status: 200, description: 'Return the Approval Process.', type: ApprovalProcess })
