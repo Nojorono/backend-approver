@@ -18,23 +18,31 @@ export class ApprovalProcessRepository {
   }
 
   async findAll(): Promise<ApprovalProcess[]> {
-    return await this.repository.find({ withDeleted: false });
+    return await this.repository.find({ 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
   }
 
   async findOne(id: string): Promise<ApprovalProcess | null> {
-    const entity = await this.repository.findOne({ where: { id }, withDeleted: false });
+    const entity = await this.repository.findOne({ 
+      where: { id }, 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
     if (!entity) {
       return null;
     }
     return entity;
   }
 
-  async findByApproverId(approverId: string): Promise<ApprovalProcess | null> {
-    const entity = await this.repository.findOne({ where: { approverId }, withDeleted: false });
-    if (!entity) {
-      return null;
-    }
-    return entity;
+  async findByApproverId(approverId: string): Promise<ApprovalProcess[]> {
+    const entities = await this.repository.find({ 
+      where: { approverId }, 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
+    return entities;
   }
 
   async update(id: string, updateDto: UpdateApprovalProcessDto): Promise<ApprovalProcess | null> {
@@ -55,7 +63,11 @@ export class ApprovalProcessRepository {
   }
 
   async findWithDeleted(id: string): Promise<ApprovalProcess | null> {
-    const entity = await this.repository.findOne({ where: { id }, withDeleted: true });
+    const entity = await this.repository.findOne({ 
+      where: { id }, 
+      withDeleted: true,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
     if (!entity) {
       return null;
     }
@@ -63,7 +75,10 @@ export class ApprovalProcessRepository {
   }
 
   async findAllWithDeleted(): Promise<ApprovalProcess[]> {
-    return await this.repository.find({ withDeleted: true });
+    return await this.repository.find({ 
+      withDeleted: true,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
   }
 
   async restore(id: string): Promise<void> {
@@ -85,7 +100,8 @@ export class ApprovalProcessRepository {
   async findByApprovalRequestIdAndApproverId(approvalRequestId: string, approverId: string): Promise<ApprovalProcess | null> {
     const entity = await this.repository.findOne({ 
       where: { approvalRequestId, approverId }, 
-      withDeleted: false 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
     });
     if (!entity) {
       return null;
@@ -96,7 +112,8 @@ export class ApprovalProcessRepository {
   async findByApprovalRequestId(approvalRequestId: string): Promise<ApprovalProcess | null> {
     const entity = await this.repository.findOne({ 
       where: { approvalRequestId }, 
-      withDeleted: false 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
     });
     return entity;
   }

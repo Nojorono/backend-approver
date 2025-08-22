@@ -4,10 +4,13 @@ import {
   Index,
   BeforeInsert,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { ApprovalProcess } from './approval-process.entity';
 import { NotificationTrack } from './notification-track.entity';
+import { User } from './user.entity';
 
 @Entity('approval_requests')
 @Index(['code'], { unique: true })
@@ -38,6 +41,10 @@ export class ApprovalRequest extends BaseEntity {
 
   @Column({ nullable: true })
   createdBy: string;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'createdBy' })
+  creator: User;
 
   @Column({ nullable: true })
   frontendUrl: string;

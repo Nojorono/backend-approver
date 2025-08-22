@@ -20,6 +20,10 @@ export class ApprovalProcessService {
     return await this.repository.findAll();
   }
 
+  async findByApproverId(approverId: string): Promise<ApprovalProcess[]> {
+    return await this.repository.findByApproverId(approverId);
+  }
+
   async findOne(id: string): Promise<ApprovalProcess> {
     const entity = await this.repository.findOne(id);
     if (!entity) {
