@@ -115,6 +115,17 @@ export class ApprovalProcessController {
   hardDelete(@Param('id') id: string) {
     return this.service.hardDelete(id);
   }
+
+  @Post('check-status/:approvalRequestId')
+  @ApiOperation({ summary: 'Check and update approval request status based on approval processes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Approval request status checked and updated successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'Approval request not found.' })
+  checkApprovalRequestStatus(@Param('approvalRequestId') approvalRequestId: string) {
+    return this.service.checkAndUpdateApprovalRequestStatus(approvalRequestId);
+  }
 }
 
 

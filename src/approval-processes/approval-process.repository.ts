@@ -117,6 +117,15 @@ export class ApprovalProcessRepository {
     });
     return entity;
   }
+
+  async findAllByApprovalRequestId(approvalRequestId: string): Promise<ApprovalProcess[]> {
+    const entities = await this.repository.find({ 
+      where: { approvalRequestId }, 
+      withDeleted: false,
+      relations: ['approvalRequest', 'approvalRequest.creator']
+    });
+    return entities;
+  }
 }
 
 

@@ -3,17 +3,23 @@ import { ApprovalProcessRepository } from './approval-process.repository';
 import { CreateApprovalProcessDto } from './dto/create-approval-process.dto';
 import { ApprovalProcess } from '../core/domain/entities/approval-process.entity';
 import { UpdateApprovalProcessDto } from './dto/update-approval-process.dto';
+import { ApprovalRequestRepository } from '../approval-requests/approval-request.repository';
 
 @Injectable()
 export class ApprovalProcessService {
-  constructor(private readonly repository: ApprovalProcessRepository) {}
+  constructor(
+    private readonly repository: ApprovalProcessRepository,
+    private readonly approvalRequestRepository: ApprovalRequestRepository,
+  ) {}
 
   async create(createDto: CreateApprovalProcessDto): Promise<ApprovalProcess> {
     const checkApprovalProcess = await this.repository.findByApprovalRequestIdAndApproverId(createDto.approvalRequestId, createDto.approverId);
     if (checkApprovalProcess) {
       throw new BadRequestException('Approval process with this approval request and approver already exists');
     } 
-    return await this.repository.create(createDto);
+    const approvalProcess = await this.repository.create(createDto);
+    await this.checkAndUpdateApprovalRequestStatus(createDto.approvalRequestId);
+    return approvalProcess;
   }
 
   async findAll(): Promise<ApprovalProcess[]> {
@@ -37,6 +43,7 @@ export class ApprovalProcessService {
     if (!updated) {
       throw new NotFoundException(`Approval process with ID ${id} not found`);
     }
+    await this.checkAndUpdateApprovalRequestStatus(updated.approvalRequestId);
     return updated;
   }
 
@@ -65,6 +72,38 @@ export class ApprovalProcessService {
   async hardDelete(id: string): Promise<void> {
     await this.findWithDeleted(id);
     await this.repository.hardDelete(id);
+  }
+
+  async checkAndUpdateApprovalRequestStatus(approvalRequestId: string): Promise<{ status: string; message: string }> {
+    const approvalRequest = await this.approvalRequestRepository.findOne(approvalRequestId);
+    if (!approvalRequest) {
+      throw new NotFoundException(`Approval request with ID ${approvalRequestId} not found`);
+    }
+
+    if (!approvalRequest.approverIds || approvalRequest.approverIds.length === 0) {
+      return { status: 'pending', message: 'No approvers assigned' };
+    }
+
+    const approvalProcesses = await this.repository.findAllByApprovalRequestId(approvalRequestId);
+    
+    if (approvalProcesses.length !== approvalRequest.approverIds.length) {
+      return { status: 'pending', message: 'Not all approvers have responded yet' };
+    }
+
+    const hasRejected = approvalProcesses.some(process => process.status === 'rejected');
+    const allApproved = approvalProcesses.every(process => process.status === 'approved');
+
+    if (hasRejected) {
+      await this.approvalRequestRepository.update(approvalRequestId, { status: 'rejected' });
+      return { status: 'rejected', message: 'Approval request rejected by one or more approvers' };
+    }
+
+    if (allApproved) {
+      await this.approvalRequestRepository.update(approvalRequestId, { status: 'approved' });
+      return { status: 'approved', message: 'Approval request approved by all approvers' };
+    }
+
+    return { status: 'pending', message: 'Approval request still pending' };
   }
 }
 
