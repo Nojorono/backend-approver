@@ -74,20 +74,38 @@ export class ApprovalProcessService {
     await this.repository.hardDelete(id);
   }
 
-  async checkAndUpdateApprovalRequestStatus(approvalRequestId: string): Promise<{ status: string; message: string }> {
+  async checkAndUpdateApprovalRequestStatus(approvalRequestId: string): Promise<{ status: string; message: string; counts: any }> {
     const approvalRequest = await this.approvalRequestRepository.findOne(approvalRequestId);
     if (!approvalRequest) {
       throw new NotFoundException(`Approval request with ID ${approvalRequestId} not found`);
     }
 
-    if (!approvalRequest.approverIds || approvalRequest.approverIds.length === 0) {
-      return { status: 'pending', message: 'No approvers assigned' };
+    const approverIdsCount = approvalRequest.approverIds ? approvalRequest.approverIds.length : 0;
+    const approvalProcesses = await this.repository.findAllByApprovalRequestId(approvalRequestId);
+    const approvalProcessesCount = approvalProcesses.length;
+
+    const counts = {
+      approverIdsCount,
+      approvalProcessesCount,
+      approvedCount: approvalProcesses.filter(process => process.status === 'approved').length,
+      rejectedCount: approvalProcesses.filter(process => process.status === 'rejected').length,
+      pendingCount: approverIdsCount - approvalProcessesCount
+    };
+
+    if (approverIdsCount === 0) {
+      return { 
+        status: 'pending', 
+        message: 'No approvers assigned',
+        counts 
+      };
     }
 
-    const approvalProcesses = await this.repository.findAllByApprovalRequestId(approvalRequestId);
-    
-    if (approvalProcesses.length !== approvalRequest.approverIds.length) {
-      return { status: 'pending', message: 'Not all approvers have responded yet' };
+    if (approvalProcessesCount !== approverIdsCount) {
+      return { 
+        status: 'pending', 
+        message: `Not all approvers have responded yet. Expected: ${approverIdsCount}, Received: ${approvalProcessesCount}`,
+        counts 
+      };
     }
 
     const hasRejected = approvalProcesses.some(process => process.status === 'rejected');
@@ -95,15 +113,27 @@ export class ApprovalProcessService {
 
     if (hasRejected) {
       await this.approvalRequestRepository.update(approvalRequestId, { status: 'rejected' });
-      return { status: 'rejected', message: 'Approval request rejected by one or more approvers' };
+      return { 
+        status: 'rejected', 
+        message: 'Approval request rejected by one or more approvers',
+        counts 
+      };
     }
 
     if (allApproved) {
       await this.approvalRequestRepository.update(approvalRequestId, { status: 'approved' });
-      return { status: 'approved', message: 'Approval request approved by all approvers' };
+      return { 
+        status: 'approved', 
+        message: 'Approval request approved by all approvers',
+        counts 
+      };
     }
 
-    return { status: 'pending', message: 'Approval request still pending' };
+    return { 
+      status: 'pending', 
+      message: 'Approval request still pending',
+      counts 
+    };
   }
 }
 

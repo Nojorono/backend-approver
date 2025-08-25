@@ -121,6 +121,23 @@ export class ApprovalProcessController {
   @ApiResponse({
     status: 200,
     description: 'Approval request status checked and updated successfully.',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        message: { type: 'string' },
+        counts: {
+          type: 'object',
+          properties: {
+            approverIdsCount: { type: 'number' },
+            approvalProcessesCount: { type: 'number' },
+            approvedCount: { type: 'number' },
+            rejectedCount: { type: 'number' },
+            pendingCount: { type: 'number' }
+          }
+        }
+      }
+    }
   })
   @ApiResponse({ status: 404, description: 'Approval request not found.' })
   checkApprovalRequestStatus(@Param('approvalRequestId') approvalRequestId: string) {
