@@ -120,7 +120,7 @@ export class ApprovalProcessService {
       };
     }
 
-    if (allApproved) {
+    if (allApproved && approvalProcessesCount === approverIdsCount) {
       await this.approvalRequestRepository.update(approvalRequestId, { status: 'approved' });
       return { 
         status: 'approved', 
@@ -131,7 +131,7 @@ export class ApprovalProcessService {
 
     return { 
       status: 'pending', 
-      message: 'Approval request still pending',
+      message: 'Approval request still pending - counts do not match or not all approved',
       counts 
     };
   }
