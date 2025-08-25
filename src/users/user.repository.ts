@@ -57,12 +57,16 @@ export class UserRepository {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const user = await this.findOne(id);
-    if (!user) {
+    const existing = await this.findOne(id);
+    if (!existing) {
       throw new NotFoundException('User not found');
     }
-    await this.repository.update(id, updateUserDto);
-    return await this.findOne(id);
+    const preloaded = await this.repository.preload({ id, ...updateUserDto });
+    if (!preloaded) {
+      throw new NotFoundException('User not found');
+    }
+    const saved = await this.repository.save(preloaded);
+    return saved;
   }
 
   async remove(id: string): Promise<void> {

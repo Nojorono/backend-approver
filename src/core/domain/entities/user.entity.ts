@@ -44,7 +44,12 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
-    if (this.password && typeof this.password === 'string' && this.password.length > 0) {
+    if (
+      this.password &&
+      typeof this.password === 'string' &&
+      this.password.length > 0 &&
+      !this.password.startsWith('$2b$')
+    ) {
       this.password = await bcrypt.hash(this.password, 12);
     }
   }
@@ -52,7 +57,12 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPin() {
-    if (this.pin && typeof this.pin === 'string' && this.pin.length > 0) {
+    if (
+      this.pin &&
+      typeof this.pin === 'string' &&
+      this.pin.length > 0 &&
+      !this.pin.startsWith('$2b$')
+    ) {
       this.pin = await bcrypt.hash(this.pin, 12);
     }
   }
@@ -63,7 +73,12 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashEmail() {
-    if (this.email && typeof this.email === 'string' && this.email.length > 0 && !this.email.startsWith('$2b$')) {
+    if (
+      this.email &&
+      typeof this.email === 'string' &&
+      this.email.length > 0 &&
+      !User.isEncrypted(this.email)
+    ) {
       this.email = this.encrypt(this.email);
     }
   }
@@ -71,7 +86,12 @@ export class User extends BaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPhone() {
-    if (this.phone && typeof this.phone === 'string' && this.phone.length > 0 && !this.phone.startsWith('$2b$')) {
+    if (
+      this.phone &&
+      typeof this.phone === 'string' &&
+      this.phone.length > 0 &&
+      !User.isEncrypted(this.phone)
+    ) {
       this.phone = this.encrypt(this.phone);
     }
   }
@@ -116,5 +136,16 @@ export class User extends BaseEntity {
     let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+  }
+
+  private static isEncrypted(value: string): boolean {
+    if (typeof value !== 'string') return false;
+    const parts = value.split(':');
+    if (parts.length < 2) return false;
+    const [ivHex, ...rest] = parts;
+    if (!ivHex || !/^[0-9a-f]{32}$/i.test(ivHex)) return false;
+    const cipherHex = rest.join(':');
+    if (!cipherHex || !/^[0-9a-f]+$/i.test(cipherHex)) return false;
+    return true;
   }
 }
