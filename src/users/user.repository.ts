@@ -21,6 +21,16 @@ export class UserRepository {
     return await this.repository.find();
   }
 
+  async findDecryptedUser(id: string): Promise<User> {
+    const user = await this.repository.findOne({ where: { id: id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.email = user.getUnhashedEmail() || '';
+    user.phone = user.getUnhashedPhone() || '';
+    return user;
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.repository.findOne({
       where: { username: username },

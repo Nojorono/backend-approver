@@ -165,4 +165,12 @@ export class UserController {
   findByRole(@Param('roleName') roleName: string) {
     return this.userService.findByRole(roleName);
   }
+
+  @Get('decrypt/:id')
+  @ApiOperation({ summary: 'Decrypt PIN code for a user' })
+  @ApiResponse({ status: 200, description: 'Return decrypted PIN code.', type: String })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  decryptUser(@Param('id') id: string) {
+    return this.userService.decryptUser(id);
+  }
 }

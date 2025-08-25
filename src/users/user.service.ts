@@ -149,4 +149,9 @@ export class UserService {
       return { valid: false };
     }
   }
+
+  async decryptUser(id: string): Promise<User> {
+    const user = await this.repository.findDecryptedUser(id);
+    return user;
+  }
 }
