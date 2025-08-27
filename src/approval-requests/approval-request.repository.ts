@@ -33,6 +33,7 @@ export class ApprovalRequestRepository {
   async findPendingByApproverId(approverId: string): Promise<ApprovalRequest[]> {
     return await this.repository.find({
       where: { approverIds: In([approverId]), status: 'pending' },
+      relations: ['creator'],
       withDeleted: false,
     });
   }
