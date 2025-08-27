@@ -44,15 +44,27 @@ export class ApprovalRequestService {
 
   async findPendingByApproverId(approverId: string): Promise<ApprovalRequest[]> {
     const checkApprovalRequest = await this.repository.findPendingByApproverId(approverId);
-    if (checkApprovalRequest.length > 0) {
-      for (const approvalRequest of checkApprovalRequest) {
-        const checkApproverProcess = await this.approvalProcessRepository.findByApprovalRequestIdAndApproverId(approvalRequest.id, approverId);
-        if (!checkApproverProcess) {
-          return [approvalRequest];
-        }
-      }
-    }    
-    return [];
+    
+    if (checkApprovalRequest.length === 0) {
+      return [];
+    }
+
+    const approvalRequestsWithProcessChecks = await Promise.all(
+      checkApprovalRequest.map(async (approvalRequest) => {
+        const approvalProcess = await this.approvalProcessRepository.findByApprovalRequestIdAndApproverId(
+          approvalRequest.id, 
+          approverId
+        );
+        return {
+          approvalRequest,
+          hasProcess: !!approvalProcess
+        };
+      })
+    );
+
+    return approvalRequestsWithProcessChecks
+      .filter(item => !item.hasProcess)
+      .map(item => item.approvalRequest);
   }
 
   private sendNotificationsInBackground(
