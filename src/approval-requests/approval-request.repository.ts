@@ -59,6 +59,7 @@ export class ApprovalRequestRepository {
   async findOne(id: string): Promise<ApprovalRequest | null> {
     const approvalRequest = await this.repository.findOne({ 
       where: { id: id },
+      relations: ['creator'],
       withDeleted: false,
     });
     if (!approvalRequest) {
