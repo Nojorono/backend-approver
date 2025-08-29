@@ -173,4 +173,12 @@ export class UserController {
   decryptUser(@Param('id') id: string) {
     return this.userService.decryptUser(id);
   }
+
+  @Post('reset-pin/:id')
+  @ApiOperation({ summary: 'Reset PIN code for a user' })
+  @ApiResponse({ status: 200, description: 'PIN has been reset successfully.', type: String })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  resetPin(@Param('id') id: string) {
+    return this.userService.resetPin(id);
+  }
 }

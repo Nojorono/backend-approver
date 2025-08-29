@@ -12,12 +12,16 @@ import { SetPinDto } from './dto/set-pin.dto';
 import { User } from '../core/domain/entities/user.entity';
 import { AuthService } from '../infrastructure/services/auth.service';
 import * as bcrypt from 'bcrypt';
+import { InfobipEmailService } from '../infobip/services/infobip-email.service';
+import { InfobipWhatsAppService } from '../infobip/services/infobip-whatsapp.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly repository: UserRepository,
     private readonly authService: AuthService,
+    private readonly infobipEmailService: InfobipEmailService,
+    private readonly infobipWhatsAppService: InfobipWhatsAppService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -153,5 +157,24 @@ export class UserService {
   async decryptUser(id: string): Promise<User> {
     const user = await this.repository.findDecryptedUser(id);
     return user;
+  }
+
+  async resetPin(id: string): Promise<{ success: boolean; message: string }> {
+    const user = await this.findOne(id);
+    const pin = Math.floor(100000 + Math.random() * 900000); // 6 digit pin
+    const hashedPin = await bcrypt.hash(pin.toString(), 12);
+    await this.repository.update(id, { pin: hashedPin });
+    //send email to user
+    const email = user.getUnhashedEmail();
+    const phone = user.getUnhashedPhone();
+    const subject = 'Reset PIN Code';
+    const message = `Your PIN code has been reset successfully to ${pin}. Please use this PIN to login to the system.`;
+    if (email) {
+      await this.infobipEmailService.sendEmail({ to: [{ email }], subject, html: message });
+    }
+    if (phone) {
+      await this.infobipWhatsAppService.sendTextMessage({ to: phone, text: message });
+    }
+    return { success: true, message: 'PIN has been reset successfully' };
   }
 }

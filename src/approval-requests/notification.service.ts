@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { InfobipEmailService } from '../infobip/services/infobip-email.service';
+import { EmailResponseDto, InfobipEmailService } from '../infobip/services/infobip-email.service';
 import { InfobipWhatsAppService } from '../infobip/services/infobip-whatsapp.service';
 import { NotificationTrack, NotificationType, NotificationStatus } from '../core/domain/entities/notification-track.entity';
 import { ApprovalRequest } from '../core/domain/entities/approval-request.entity';
@@ -1084,5 +1084,14 @@ export class NotificationService {
     }
 
     return error.message || 'Failed to send WhatsApp message - Unknown error occurred';
+  }
+
+  private resetPinSendEmail(email: string, subject: string, message: string): Promise<EmailResponseDto> {
+    const emailData: SendEmailDto = {
+      to: [{ email }],
+      subject,
+      html: message,
+    };
+    return this.infobipEmailService.sendEmail(emailData);
   }
 }
