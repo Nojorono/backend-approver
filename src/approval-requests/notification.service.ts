@@ -166,9 +166,11 @@ export class NotificationService {
       this.logger.error(`Failed to send WhatsApp message for approval request ${approvalRequestId}:`, error);
 
       if (notificationTrack) {
+        const errorMessage = this.formatWhatsAppErrorMessage(error);
+        
         await this.notificationTrackRepository.update(notificationTrack.id, {
           status: NotificationStatus.FAILED,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorMessage,
           retryCount: (notificationTrack.retryCount || 0) + 1,
         });
       }
@@ -501,14 +503,42 @@ export class NotificationService {
               `/approval-process/$1?approverId=${approver.id}`
             );
             
-            const result = await this.sendApprovalRequestWhatsApp(
-              approvalRequestId,
-              unhashedPhone,
-              approverWhatsappContent,
-              undefined,
-              approver.id,
-            );
-            whatsappResults.push(result);
+            try {
+              const result = await this.sendApprovalRequestWhatsApp(
+                approvalRequestId,
+                unhashedPhone,
+                approverWhatsappContent,
+                undefined,
+                approver.id,
+              );
+              whatsappResults.push(result);
+            } catch (error) {
+              if (this.isSessionError(error)) {
+                this.logger.warn(`Session error for WhatsApp to ${unhashedPhone}. Attempting template message.`);
+                
+                try {
+                  const templateVariables = [
+                    { name: 'approval_request_code', value: approvalRequest.code },
+                    { name: 'approver_name', value: approver.email || 'Approver' },
+                    { name: 'approval_url', value: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/approval-process/${approvalRequest.id}?approverId=${approver.id}` },
+                  ];
+                  
+                  const templateResult = await this.sendApprovalRequestWhatsAppTemplate(
+                    approvalRequestId,
+                    unhashedPhone,
+                    'approval_request_notification',
+                    templateVariables,
+                    undefined,
+                    approver.id,
+                  );
+                  whatsappResults.push(templateResult);
+                } catch (templateError) {
+                  this.logger.error(`Failed to send WhatsApp template message to ${unhashedPhone}:`, templateError);
+                }
+              } else {
+                this.logger.error(`Failed to send WhatsApp message to ${unhashedPhone}:`, error);
+              }
+            }
           }
         } catch (error) {
           this.logger.error(`Failed to send notification to approver ${approver.id}:`, error);
@@ -946,5 +976,113 @@ export class NotificationService {
       default:
         return NotificationStatus.PENDING;
     }
+  }
+
+  async sendApprovalRequestWhatsAppTemplate(
+    approvalRequestId: string,
+    recipientPhone: string,
+    templateName: string,
+    templateVariables: Array<{ name: string; value: string }>,
+    metadata?: Record<string, unknown>,
+    recipientId?: string,
+  ): Promise<NotificationTrack> {
+    let notificationTrack: NotificationTrack | undefined;
+
+    try {
+      const approvalRequest = await this.approvalRequestRepository.findOne({
+        where: { id: approvalRequestId },
+      });
+
+      if (!approvalRequest) {
+        throw new Error(`Approval request with ID ${approvalRequestId} not found`);
+      }
+
+      notificationTrack = this.notificationTrackRepository.create({
+        approvalRequestId,
+        type: NotificationType.WHATSAPP,
+        status: NotificationStatus.PENDING,
+        recipient: recipientPhone,
+        recipientId,
+        content: `Template: ${templateName}`,
+        metadata,
+        retryCount: 0,
+      });
+
+      await this.notificationTrackRepository.save(notificationTrack);
+
+      const templateData = {
+        to: recipientPhone,
+        templateName,
+        language: 'en',
+        variables: templateVariables,
+      };
+
+      const response = await this.infobipWhatsAppService.sendTemplateMessage(templateData);
+
+      const status = this.mapInfobipStatusToNotificationStatus(response.status.groupId);
+
+      await this.notificationTrackRepository.update(notificationTrack.id, {
+        messageId: response.messageId,
+        status,
+        sentAt: new Date(),
+        metadata: metadata as any,
+      });
+
+      this.logger.log(`WhatsApp template message sent successfully for approval request ${approvalRequestId} to ${recipientPhone}`);
+
+      const result = await this.notificationTrackRepository.findOne({
+        where: { id: notificationTrack.id },
+      });
+
+      if (!result) {
+        throw new Error('Failed to retrieve notification track after creation');
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to send WhatsApp template message for approval request ${approvalRequestId}:`, error);
+
+      if (notificationTrack) {
+        const errorMessage = this.formatWhatsAppErrorMessage(error);
+        
+        await this.notificationTrackRepository.update(notificationTrack.id, {
+          status: NotificationStatus.FAILED,
+          errorMessage,
+          retryCount: (notificationTrack.retryCount || 0) + 1,
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  private isSessionError(error: any): boolean {
+    if (error?.response?.data?.requestError?.serviceException?.variables) {
+      const variables = error.response.data.requestError.serviceException.variables;
+      return variables.some((v: any) => v.key === 'code' && v.value === '7010');
+    }
+    
+    if (error?.response?.data?.requestError?.serviceException?.text) {
+      const errorText = error.response.data.requestError.serviceException.text.toLowerCase();
+      return errorText.includes('session') || errorText.includes('7010') || errorText.includes('ec_no_session');
+    }
+    
+    return false;
+  }
+
+  private formatWhatsAppErrorMessage(error: any): string {
+    if (this.isSessionError(error)) {
+      return 'WhatsApp session not established. The recipient needs to initiate a conversation first or the session has expired. Please use a WhatsApp template message for initial contact.';
+    }
+
+    if (error.response?.data?.requestError?.serviceException?.text) {
+      return error.response.data.requestError.serviceException.text;
+    }
+
+    if (error.response?.data?.message) {
+      return error.response.data.message;
+    }
+
+    return error.message || 'Failed to send WhatsApp message - Unknown error occurred';
   }
 }

@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UseGuards,
   Request,
+  Headers,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -294,5 +295,101 @@ export class InfobipWhatsAppController {
       'WhatsApp report retrieved successfully',
       result,
     );
+  }
+
+  @Post('webhook')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'WhatsApp delivery status webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook processed successfully',
+  })
+  async webhook(
+    @Body() webhookData: any,
+    @Headers() headers: any,
+  ): Promise<void> {
+    await this.whatsappService.processWebhook(webhookData, headers);
+  }
+
+  @Post('webhook/test')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Test WhatsApp webhook with sample data' })
+  @ApiResponse({
+    status: 200,
+    description: 'Test webhook processed successfully',
+  })
+  async testWebhook(): Promise<{ message: string; webhookUrl: string }> {
+    const sampleWebhookData = {
+      results: [
+        {
+          messageId: 'msg-1756486653310',
+          from: '447860099299',
+          to: '+1234567890',
+          status: {
+            groupId: 4,
+            groupName: 'UNDELIVERABLE',
+            id: 7010,
+            name: 'EC_NO_SESSION',
+            description: 'No session (code 7010)',
+          },
+          sentAt: '2024-01-29T10:30:00.000Z',
+          doneAt: '2024-01-29T10:30:01.000Z',
+          messageCount: 1,
+          price: {
+            pricePerMessage: 0.01,
+            currency: 'USD',
+          },
+          error: {
+            groupId: 4,
+            groupName: 'HANDSET_ERRORS',
+            id: 7010,
+            name: 'EC_NO_SESSION',
+            description: 'No session (code 7010)',
+            permanent: false,
+          },
+        },
+      ],
+    };
+
+    await this.whatsappService.processWebhook(sampleWebhookData, {});
+    
+    return {
+      message: 'Test webhook processed successfully',
+      webhookUrl: `${process.env.BASE_URL || 'http://localhost:3000'}/infobip/whatsapp/webhook`,
+    };
+  }
+
+  @Post('template/test')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Test WhatsApp template message' })
+  @ApiResponse({
+    status: 200,
+    description: 'Template message test completed',
+  })
+  async testTemplateMessage(): Promise<{ message: string; success: boolean }> {
+    try {
+      const templateData = {
+        to: '+1234567890',
+        templateName: 'approval_request_notification',
+        language: 'en',
+        variables: [
+          { name: 'approval_request_code', value: 'AR-TEST-123' },
+          { name: 'approver_name', value: 'Test User' },
+          { name: 'approval_url', value: 'https://example.com/approval/123' },
+        ],
+      };
+
+      const response = await this.whatsappService.sendTemplateMessage(templateData);
+      
+      return {
+        message: `Template message sent successfully. Message ID: ${response.messageId}`,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        message: `Template message failed: ${error.message}`,
+        success: false,
+      };
+    }
   }
 }

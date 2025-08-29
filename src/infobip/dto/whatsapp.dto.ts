@@ -480,10 +480,23 @@ export class SendWhatsAppMessageDto {
   @IsString()
   templateLanguage?: string;
 
-  @ApiPropertyOptional({ type: [Object] })
+  @ApiPropertyOptional({ 
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        value: { type: 'string' }
+      }
+    },
+    example: [
+      { name: 'user_name', value: 'John Doe' },
+      { name: 'company_name', value: 'Infobip' }
+    ]
+  })
   @IsOptional()
   @IsArray()
-  templateVariables?: Record<string, string>[];
+  templateVariables?: Array<{ name: string; value: string }>;
 
   @ApiPropertyOptional({ example: 'message-123' })
   @IsOptional()
@@ -494,4 +507,34 @@ export class SendWhatsAppMessageDto {
   @IsOptional()
   @IsString()
   campaignId?: string;
+}
+
+export interface WhatsAppWebhookDto {
+  results: Array<{
+    messageId: string;
+    from: string;
+    to: string;
+    status: {
+      groupId: number;
+      groupName: string;
+      id: number;
+      name: string;
+      description: string;
+    };
+    sentAt: string;
+    doneAt: string;
+    messageCount: number;
+    price: {
+      pricePerMessage: number;
+      currency: string;
+    };
+    error?: {
+      groupId: number;
+      groupName: string;
+      id: number;
+      name: string;
+      description: string;
+      permanent: boolean;
+    };
+  }>;
 }

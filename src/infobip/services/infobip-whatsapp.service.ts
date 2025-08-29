@@ -1,5 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   WhatsAppTextMessageDto,
   WhatsAppMediaMessageDto,
@@ -11,9 +13,11 @@ import {
   WhatsAppReportsQueryDto,
   SendWhatsAppMessageDto,
   WhatsAppMessageType,
+  WhatsAppWebhookDto,
 } from '../dto/whatsapp.dto';
 import { InfobipAuthService, AuthMethod } from './infobip-auth.service';
 import { INFOBIP_ENDPOINTS } from '../../core/config/infobip.config';
+import { NotificationTrack, NotificationStatus } from '../../core/domain/entities/notification-track.entity';
 
 export interface WhatsAppResponseDto {
   messageId: string;
@@ -34,6 +38,8 @@ export class InfobipWhatsAppService {
   constructor(
     private readonly authService: InfobipAuthService,
     private readonly configService: ConfigService,
+    @InjectRepository(NotificationTrack)
+    private readonly notificationTrackRepository: Repository<NotificationTrack>,
   ) {}
 
   private formatPhoneNumber(
@@ -91,7 +97,7 @@ export class InfobipWhatsAppService {
         }
 
         const sender = this.formatPhoneNumber(senderConfig, true);
-        console.log('sender', sender);
+        this.logger.debug('Sender phone number:', sender);
         const recipient = this.formatPhoneNumber(messageData.to, false);
 
         if (!sender || sender === 'null' || sender === 'undefined') {
@@ -112,7 +118,7 @@ export class InfobipWhatsAppService {
           urlOptions: messageData.urlOptions,
         };
 
-        console.log('payload', payload);
+        this.logger.debug('WhatsApp text message payload:', payload);
 
         const response = await client.post<WhatsAppResponseDto>(
           INFOBIP_ENDPOINTS.WHATSAPP.SEND_TEXT,
@@ -586,6 +592,39 @@ export class InfobipWhatsAppService {
         error.response?.data?.requestError?.serviceException?.text ||
           'Failed to fetch WhatsApp report',
       );
+    }
+  }
+
+  async processWebhook(webhookData: WhatsAppWebhookDto, headers: any): Promise<void> {
+    try {
+      this.logger.log('Processing WhatsApp webhook:', webhookData);
+
+      if (!webhookData.results || !Array.isArray(webhookData.results)) {
+        this.logger.warn('Invalid webhook data format');
+        return;
+      }
+
+      for (const result of webhookData.results) {
+        const { messageId, status, error } = result;
+        
+        if (!messageId) {
+          this.logger.warn('Webhook result missing messageId');
+          continue;
+        }
+
+        this.logger.log(`Webhook result for messageId ${messageId}:`, {
+          status: status?.groupId,
+          statusName: status?.groupName,
+          error: error?.description,
+          errorCode: error?.id
+        });
+
+        if (error?.id === 7010) {
+          this.logger.warn(`Session error (7010) detected for messageId ${messageId}. This indicates the recipient needs to initiate a conversation first.`);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to process WhatsApp webhook:', error);
     }
   }
 }
