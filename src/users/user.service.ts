@@ -28,9 +28,25 @@ export class UserService {
     const existingUser = await this.repository.findByUsername(
       createUserDto.username,
     );
+    const existingUserByEmail = await this.repository.findByEmail(
+      createUserDto.email,
+    );
+    const existingUserByPhone = await this.repository.findByPhone(
+      createUserDto.phone,
+    );
     if (existingUser) {
       throw new ConflictException(
         `User with username ${createUserDto.username} already exists`,
+      );
+    }
+    if (existingUserByEmail) {
+      throw new ConflictException(
+        `User with email ${createUserDto.email} already exists`,
+      );
+    }
+    if (existingUserByPhone) {
+      throw new ConflictException(
+        `User with phone ${createUserDto.phone} already exists`,
       );
     }
     return await this.repository.create(createUserDto);

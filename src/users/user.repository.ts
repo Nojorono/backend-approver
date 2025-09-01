@@ -31,6 +31,22 @@ export class UserRepository {
     return user;
   }
 
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.repository.findOne({ where: { email: email } });
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
+
+  async findByPhone(phone: string): Promise<User | null> {
+    const user = await this.repository.findOne({ where: { phone: phone } });
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     const user = await this.repository.findOne({
       where: { username: username },
