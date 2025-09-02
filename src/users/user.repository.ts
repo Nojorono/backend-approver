@@ -32,7 +32,8 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = await this.repository.findOne({ where: { email: email } });
+    const findAll = await this.repository.find();
+    const user = findAll.find(user => user.getUnhashedEmail() === email);
     if (!user) {
       return null;
     }
@@ -40,7 +41,8 @@ export class UserRepository {
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    const user = await this.repository.findOne({ where: { phone: phone } });
+    const findAll = await this.repository.find();
+    const user = findAll.find(user => user.getUnhashedPhone() === phone);
     if (!user) {
       return null;
     }
